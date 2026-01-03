@@ -1,0 +1,70 @@
+name: "📚 Documentation"
+description: "Request a documentation update, addition, or correction"
+title: "[Docs]: "
+labels:
+  - docs
+  - triage
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to request **updates, additions, or corrections** to documentation.
+        Please provide detailed context so the documentation team can act efficiently.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: Short, clear description of the documentation change
+      placeholder: "e.g. 'Update build toolchain docs for ARM64 support'"
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_documentation
+    attributes:
+      label: Current Documentation
+      description: Link or description of the current documentation that needs updating
+      placeholder: "e.g. 'docs/build-toolchain.md, section 3.2'"
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_change
+    attributes:
+      label: Proposed Change
+      description: Describe the change you suggest
+      placeholder: |
+        - Correct typo
+        - Add example usage
+        - Update steps for new toolchain
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - Low
+        - Medium
+        - High
+        - Critical
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: Who or what will benefit from this documentation change?
+      placeholder: "e.g. Developers using CI/CD pipelines, internal teams"
+
+  - type: textarea
+    id: additional_notes
+    attributes:
+      label: Additional Notes
+      description: Extra context, links, screenshots, or references
+      placeholder: "Optional"

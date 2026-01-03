@@ -1,0 +1,76 @@
+name: "🚀 Feature Request"
+description: "Request a new feature or enhancement"
+title: "[Feature]: "
+labels:
+  - enhancement
+  - triage
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to **request a new feature or enhancement**.  
+        Provide context, rationale, and details to help assess the value.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: Short, clear description of the feature
+      placeholder: "e.g. 'Add multi-arch support for custom Docker images'"
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation / Why
+      description: Why is this feature needed? Business or technical value?
+      placeholder: "Explain the problem or opportunity this feature addresses"
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_solution
+    attributes:
+      label: Proposed Solution
+      description: Describe how you envision the feature working
+      placeholder: |
+        - Suggested implementation
+        - Architecture or approach
+        - Alternatives considered
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Conditions that define when the feature is done
+      placeholder: |
+        - [ ] Feature implemented
+        - [ ] Tests added
+        - [ ] Documentation updated
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How urgent or important is this feature
+      options:
+        - Low
+        - Medium
+        - High
+        - Critical
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_notes
+    attributes:
+      label: Additional Notes
+      description: Any extra context, diagrams, or links to related PRs/issues
+      placeholder: "Optional"

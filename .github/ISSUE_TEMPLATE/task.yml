@@ -1,0 +1,105 @@
+name: "🛠️ Task / Chore"
+description: "Operational task, refactor, maintenance or internal work item"
+title: "[Task]: "
+labels:
+  - task
+  - triage
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for **technical tasks, maintenance, refactors, or operational work**.
+        This is not intended for bugs or feature requests.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: Short, clear description of the task
+      placeholder: "Refactor build pipeline to support multi-arch caching"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context / Background
+      description: Why is this task needed? Provide background or rationale.
+      placeholder: |
+        Current situation:
+        Why this task is required:
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope of Work
+      description: What needs to be done? Be explicit.
+      placeholder: |
+        - Update scripts
+        - Adjust CI configuration
+        - Cleanup deprecated logic
+    validations:
+      required: true
+
+  - type: dropdown
+    id: task_type
+    attributes:
+      label: Task Type
+      description: Select the category that best fits this task
+      options:
+        - Refactor
+        - Maintenance
+        - CI/CD
+        - Infrastructure
+        - Dependency update
+        - Security hardening
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - Low
+        - Medium
+        - High
+        - Critical
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Define when this task can be considered complete
+      placeholder: |
+        - [ ] Criteria 1
+        - [ ] Criteria 2
+        - [ ] Criteria 3
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: Impact Assessment
+      description: Check all that apply
+      options:
+        - label: No user-facing impact
+        - label: Internal behavior change
+        - label: CI / tooling impact
+        - label: Potential breaking change
+        - label: Security-related change
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional Notes
+      description: Any extra context, links, or considerations
+      placeholder: "Links to docs, PRs, diagrams, or follow-ups"
