@@ -64,19 +64,19 @@ jobs:
       # Checkout del repository
       # -----------------------------------------------------------------------
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # -----------------------------------------------------------------------
       # Setup Python + cache pip
       # -----------------------------------------------------------------------
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: "pip"
 
       - name: Cache pip (fallback manuale)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
@@ -166,7 +166,7 @@ jobs:
       # Pubblica il report come artifact
       # -----------------------------------------------------------------------
       - name: Pubblica report come artefatto
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: social_sync_report
           path: social_sync_report.json
