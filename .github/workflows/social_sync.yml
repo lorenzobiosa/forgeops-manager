@@ -58,6 +58,7 @@ jobs:
     name: Esegui social sync
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment: production
 
     steps:
       # -----------------------------------------------------------------------
@@ -103,7 +104,7 @@ jobs:
       # -----------------------------------------------------------------------
       - name: Esegui sincronizzazione (dry-run o reale)
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }} # << Imposta questo secret nel repo/org
+          GH_TOKEN: ${{ secrets.GH_TOKEN }} # << Imposta questo secret nel repo/org o nell'environment
           INPUT_DRY_RUN: ${{ github.event.inputs.dry_run }}
           INPUT_ALLOWLIST: ${{ github.event.inputs.allowlist }}
           INPUT_BLOCKLIST: ${{ github.event.inputs.blocklist }}
