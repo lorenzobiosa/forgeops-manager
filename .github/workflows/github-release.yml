@@ -58,7 +58,7 @@ jobs:
       # Checkout (fetch-depth: 0 per poter creare/pushare tag)
       # -----------------------------------------------------------------------
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -66,7 +66,7 @@ jobs:
       # Setup Python e dipendenze build
       # -----------------------------------------------------------------------
       - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: "pip"
@@ -174,7 +174,7 @@ jobs:
       # -----------------------------------------------------------------------
       - name: Build release notes (conventional commits)
         id: changelog
-        uses: mikepenz/release-changelog-builder-action@v5
+        uses: mikepenz/release-changelog-builder-action@v6
         if: ${{ always() }}
         with:
           configurationJson: |
@@ -232,7 +232,7 @@ jobs:
       # Pubblica anche gli artifact come Artifacts del workflow (audit)
       # -----------------------------------------------------------------------
       - name: Upload dist artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: dist-${{ steps.tagvars.outputs.tag }}
           path: |
@@ -248,7 +248,7 @@ jobs:
       # Post-release: purge GitHub Actions cache (tutte le cache correnti)
       # -----------------------------------------------------------------------
       - name: Purge GitHub Actions caches (all keys/refs)
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const owner = context.repo.owner;
