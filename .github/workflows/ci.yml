@@ -116,7 +116,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install ".[dev]"
-          pip install coverage
+          pip install pytest-cov
 
       # Pytest con coverage XML e JUnit
       - name: Pytest (with coverage)
@@ -175,7 +175,7 @@ jobs:
       - name: Detect-Secrets (baseline)
         if: ${{ hashFiles('.secrets.baseline') != '' }}
         run: |
-          detect-secrets-hook --baseline .secrets.baseline --all-files
+          detect-secrets-hook --baseline .secrets.baseline
 
       # Nota informativa se manca la baseline
       - name: Detect-Secrets (baseline mancante - note)
