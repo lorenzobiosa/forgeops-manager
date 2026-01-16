@@ -49,16 +49,27 @@ def test_clear_vulns_delete_flow(
 
     # Prepara client mock
     mock_client: MagicMock = MagicMock(spec=sec_mod.GitHubSecurityClient)
-    # Stream analyses: 3 item, 2 cancellabili
-    analyses = [
-        {"id": 101, "deletable": True, "tool": {"name": "Trivy"}},
-        {"id": 102, "deletable": False, "tool": {"name": "Grype"}},
-        {"id": 103, "deletable": True, "tool": {"name": "Grype"}},
+
+    # Simula comportamento reale su più giri del ciclo:
+    # 1) primo giro: trova 101 (deletable) e cancella subito dopo 1 scan
+    # 2) secondo giro: lista senza 101 -> scansiona 102 (no)
+    #       e 103 (sì) => altri 2 scan e cancella 103
+    # 3) terzo giro: lista vuota -> esce
+    mock_client.list_code_scanning_analyses.side_effect = [
+        [
+            {"id": 101, "deletable": True, "tool": {"name": "Trivy"}},
+            {"id": 102, "deletable": False, "tool": {"name": "Grype"}},
+            {"id": 103, "deletable": True, "tool": {"name": "Grype"}},
+        ],
+        [
+            {"id": 102, "deletable": False, "tool": {"name": "Grype"}},
+            {"id": 103, "deletable": True, "tool": {"name": "Grype"}},
+        ],
+        [],
     ]
-    mock_client.list_code_scanning_analyses.return_value = analyses
     mock_client.delete_analysis.side_effect = [None, None]
 
-    # Costruttore client stub
+    # Costruttore client stub (ritorna sempre il mock)
     def _client_factory_stub(*args: Any, **kwargs: Any) -> MagicMock:
         return mock_client
 
@@ -73,6 +84,7 @@ def test_clear_vulns_delete_flow(
         session=None,
     )
 
+    # Con la sequenza sopra: scanned=3 (101; poi 102 e 103), deleted=2 (101 e 103)
     assert result["scanned"] == 3
     assert result["deleted"] == 2
     assert mock_client.delete_analysis.call_count == 2

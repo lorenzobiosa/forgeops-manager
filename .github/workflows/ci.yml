@@ -119,6 +119,10 @@ jobs:
           pip install pytest-cov
           pip install -e .
 
+      # Rende 'src' importabile come pacchetto top-level (coerente con i test)
+      - name: Configure PYTHONPATH
+        run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
+
       # Pytest con coverage XML e JUnit
       - name: Pytest (with coverage)
         run: |

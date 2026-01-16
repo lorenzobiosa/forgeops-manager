@@ -1,3 +1,4 @@
+# pyright: reportPrivateUsage=false
 # -*- coding: utf-8 -*-
 """
 Autore:        Lorenzo Biosa
@@ -7,18 +8,21 @@ Copyright:
 
 Modulo: tests/test_packages.py
 Descrizione:
-  Test per operazioni su GitHub Packages:
-    - Listing dei packages (type=container).
-    - Cancellazione delle sole versioni di un package (se implementato nel modulo).
-  I test patchano `src.providers.github.packages` per emulare una `requests.Session`
-  senza importare il pacchetto a livello di modulo, riducendo warning Pylance
-  in ambienti dove l’editor non risolve `requests`.
+  Test per operazioni su GitHub Packages (NON interattivi):
+    - Listing dei packages (type=container) tramite `_list_packages`.
+    - Cancellazione di versioni specifiche tramite `_delete_package_versions`.
+
+Note:
+  Il modulo `src.providers.github.packages` usa i wrapper HTTP `get`/`delete`
+  importati in quel namespace dal modulo `src.utils.http_client`. Perciò i test
+  patchano:
+    - "src.providers.github.packages.get" (e fallback "src.utils.http_client.get")
+    - "src.providers.github.packages.delete" (e fallback "src.utils.http_client.delete")
 """
 
 from __future__ import annotations
 
-import inspect
-from typing import Any, Dict
+from typing import Any, Dict, List, Mapping, Optional
 from unittest.mock import MagicMock
 
 from _pytest.monkeypatch import MonkeyPatch
@@ -26,87 +30,79 @@ from _pytest.monkeypatch import MonkeyPatch
 import src.providers.github.packages as pkg_mod
 
 
+class GetStub:
+    """Stub tipizzato per simulare il wrapper HTTP `get`."""
+
+    def __init__(self, response: Any) -> None:
+        self.response = response
+        self.calls: int = 0
+
+    def __call__(self, url: str, params: Optional[Mapping[str, Any]] = None) -> Any:
+        self.calls += 1
+        return self.response
+
+
+class DeleteStub:
+    """Stub tipizzato per simulare il wrapper HTTP `delete`."""
+
+    def __init__(self, response: Any) -> None:
+        self.response = response
+        self.calls: int = 0
+
+    def __call__(self, url: str, **kwargs: Any) -> Any:
+        self.calls += 1
+        return self.response
+
+
 def test_packages_list(monkeypatch: MonkeyPatch) -> None:
     """
-    Simula il listing dei packages con filtro type=container.
+    Simula il listing dei packages con filtro type=container usando la funzione NON interattiva.
     """
-    session = MagicMock()
-
-    resp = MagicMock()
-    resp.status_code = 200
-    resp.json.return_value = [
-        {"id": 1, "name": "pkg1", "package_type": "container"},
-        {"id": 2, "name": "pkg2", "package_type": "container"},
+    # Fake response della API packages (lista "raw")
+    fake_pkgs: List[Dict[str, Any]] = [
+        {"id": 1, "name": "pkg1", "package_type": "container", "visibility": "public"},
+        {"id": 2, "name": "pkg2", "package_type": "container", "visibility": "private"},
     ]
-    session.get.return_value = resp
+    get_resp = MagicMock()
+    get_resp.status_code = 200
+    get_resp.json.return_value = fake_pkgs
 
-    # Patch del modulo per emulare `requests.Session()`
-    monkeypatch.setattr(pkg_mod, "requests", MagicMock(Session=lambda: session))
+    get_stub = GetStub(get_resp)
 
-    # Accesso alla funzione interattiva; alcuni moduli potrebbero richiedere argomenti
-    func = getattr(pkg_mod, "interactive_delete_packages", None)
-    assert func is not None, "interactive_delete_packages non trovato nel modulo packages"
+    # Patch del simbolo `get` nel namespace del modulo packages
+    monkeypatch.setattr("src.providers.github.packages.get", get_stub, raising=True)
+    # Fallback opzionale sul modulo di basso livello
+    monkeypatch.setattr("src.utils.http_client.get", get_stub, raising=True)
 
-    sig = inspect.signature(func)
-    params = sig.parameters
+    # Esecuzione: usa la funzione non-interattiva (evita prompt/input)
+    out = pkg_mod._list_packages(("org", "acme"), "container")
 
-    call_args: Dict[str, Any] = {}
-    if "org" in params:
-        call_args["org"] = "acme-org"
-    if "type" in params:
-        call_args["type"] = "container"
-    if "token" in params:
-        call_args["token"] = "ghp_x"
-    if "dry_run" in params:
-        call_args["dry_run"] = True
-
-    # Chiamata alla funzione con kwargs filtrati
-    func(**call_args) if call_args else func()
-
-    assert session.get.called, "GET non è stato chiamato per il listing dei packages"
+    assert isinstance(out, list)
+    assert {p["name"] for p in out} == {"pkg1", "pkg2"}
+    assert get_stub.calls == 1
 
 
 def test_packages_delete_versions(monkeypatch: MonkeyPatch) -> None:
     """
-    Simula cancellazione delle sole versioni di un package (se implementato).
+    Simula cancellazione delle versioni di un package con la funzione NON interattiva.
     """
-    session = MagicMock()
-
-    # Lista versioni -> 3
-    resp_list = MagicMock()
-    resp_list.status_code = 200
-    resp_list.json.return_value = [{"id": "v1"}, {"id": "v2"}, {"id": "v3"}]
-    session.get.return_value = resp_list
-
     # DELETE -> 204
-    resp_del = MagicMock()
-    resp_del.status_code = 204
-    session.delete.return_value = resp_del
+    del_resp = MagicMock()
+    del_resp.status_code = 204
+    delete_stub = DeleteStub(del_resp)
 
-    # Patch del modulo per emulare `requests.Session()`
-    monkeypatch.setattr(pkg_mod, "requests", MagicMock(Session=lambda: session))
+    # Patch del simbolo `delete` nel namespace del modulo packages
+    monkeypatch.setattr("src.providers.github.packages.delete", delete_stub, raising=False)
+    # Fallback opzionale sul modulo di basso livello
+    monkeypatch.setattr("src.utils.http_client.delete", delete_stub, raising=True)
 
-    # Accesso sicuro alla funzione (potrebbe non esistere)
-    func = getattr(pkg_mod, "delete_package_versions", None)
-    if func is None:
-        # Se non presente, il test si limita a verificare la patch della sessione
-        # e l'assenza di errori runtime nel listing.
-        return
+    # Esecuzione: usa la funzione non-interattiva
+    pkg_mod._delete_package_versions(
+        typ="org",
+        name="acme",
+        pkg_type="container",
+        pkg_name="pkg1",
+        version_ids=[111, 222, 333],
+    )
 
-    # Adatta ai parametri attesi della funzione
-    sig = inspect.signature(func)
-    params = sig.parameters
-
-    call_args: Dict[str, Any] = {}
-    if "org" in params:
-        call_args["org"] = "acme-org"
-    if "package_name" in params:
-        call_args["package_name"] = "pkg"
-    if "token" in params:
-        call_args["token"] = "ghp_x"
-    if "dry_run" in params:
-        call_args["dry_run"] = False
-
-    func(**call_args) if call_args else func()
-
-    assert session.delete.call_count == 3, "DELETE non è stato chiamato tre volte come atteso"
+    assert delete_stub.calls == 3
