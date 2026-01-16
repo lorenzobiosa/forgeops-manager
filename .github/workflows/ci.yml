@@ -87,7 +87,7 @@ jobs:
 
       # --- Types ---
       - name: Mypy (strict)
-        run: mypy --config-file mypy.ini -p utils -p providers
+        run: mypy --config-file mypy.ini --explicit-package-bases src
 
   # ---------------------------------------------------------------------------
   # TEST: esegue la suite pytest su più versioni, produce coverage.xml + junit
