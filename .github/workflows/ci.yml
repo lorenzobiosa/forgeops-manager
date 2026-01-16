@@ -1,0 +1,243 @@
+# =============================================================================
+# CI - ForgeOps Manager (Quality Gate + Test + Security + Packaging)
+# Autore:        Lorenzo Biosa
+# Email:         lorenzo@biosa-labs.com
+# Copyright:
+#   © 2026 Biosa Labs. Tutti i diritti riservati.
+#   Questo workflow è parte del progetto ForgeOps Manager.
+#
+# Scopo:
+#   - Quality gate: Black/Isort/Flake8/Mypy (strict).
+#   - Test unitari con Pytest + coverage (artifact XML + JUnit).
+#   - Security checks: Bandit, Detect-Secrets (baseline), pip-audit (non-blocking).
+#   - Packaging: build sdist + wheel, validazione con Twine, artifact dist/.
+#
+# Note:
+#   - Il workflow si esegue su push/PR e manualmente (workflow_dispatch).
+#   - I job sono separati per parallelizzare e per gating corretto (quality -> tests -> package).
+#   - Usa la cache pip per velocizzare le installazioni.
+# =============================================================================
+
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - "feature/**"
+  pull_request:
+    branches:
+      - "**"
+  workflow_dispatch:
+
+permissions:
+  contents: read # Permessi minimi: sufficiente per leggere il repo in CI
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: "1" # Output non bufferizzato per log leggibili in CI
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # QUALITY: format (black/isort), lint (flake8), types (mypy strict)
+  # ---------------------------------------------------------------------------
+  quality:
+    name: Quality (black/isort/flake8/mypy)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11"]
+    steps:
+      # Checkout sorgenti
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Setup Python con cache pip
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      # Stampa versione Python
+      - name: Show Python version
+        run: python -V
+
+      # Installazione dipendenze tramite pyproject (best practice enterprise)
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ".[dev]"
+
+      # --- Formatting checks ---
+      - name: Black (check)
+        run: black . --check
+
+      - name: Isort (check-only)
+        run: isort . --check-only
+
+      # --- Lint ---
+      - name: Flake8
+        run: flake8 .
+
+      # --- Types ---
+      - name: Mypy (strict)
+        run: mypy src --strict
+
+  # ---------------------------------------------------------------------------
+  # TEST: esegue la suite pytest su più versioni, produce coverage.xml + junit
+  # ---------------------------------------------------------------------------
+  tests:
+    name: Tests (pytest + coverage)
+    runs-on: ubuntu-latest
+    needs: quality # Esegue solo se QUALITY è verde
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11"]
+    steps:
+      # Checkout
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Setup Python con cache pip
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      # Installa deps + coverage
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ".[dev]"
+          pip install coverage
+
+      # Pytest con coverage XML e JUnit
+      - name: Pytest (with coverage)
+        run: |
+          pytest -q --cov=src --cov-report=xml --junitxml=pytest-results.xml
+
+      # Artifact coverage (per analisi/report)
+      - name: Upload coverage.xml
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.python-version }}
+          path: coverage.xml
+          if-no-files-found: warn
+          retention-days: 7
+
+      # Artifact JUnit (per integrarsi con sistemi esterni)
+      - name: Upload junit results
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-${{ matrix.python-version }}
+          path: pytest-results.xml
+          if-no-files-found: warn
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  # SECURITY: SAST (Bandit), secret scanning (Detect-Secrets baseline),
+  #           dependency audit (pip-audit) — non blocking per default
+  # ---------------------------------------------------------------------------
+  security:
+    name: Security (bandit, detect-secrets, pip-audit)
+    runs-on: ubuntu-latest
+    needs: quality # Esegue dopo QUALITY
+    steps:
+      # Checkout
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Setup Python 3.11
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      # Installa security tooling e deps
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install ".[dev]"
+
+      # SAST
+      - name: Bandit (SAST)
+        run: bandit -r src -q
+
+      # Secret scanning con baseline versionata
+      - name: Detect-Secrets (baseline)
+        if: ${{ hashFiles('.secrets.baseline') != '' }}
+        run: |
+          detect-secrets-hook --baseline .secrets.baseline --all-files
+
+      # Nota informativa se manca la baseline
+      - name: Detect-Secrets (baseline mancante - note)
+        if: ${{ hashFiles('.secrets.baseline') == '' }}
+        run: |
+          echo "::warning::.secrets.baseline mancante. Genera la baseline con 'detect-secrets scan > .secrets.baseline' e versionala."
+
+      # Dependency audit (non-blocking per default)
+      - name: pip-audit (non-blocking)
+        continue-on-error: true
+        run: |
+          pip-audit -f json -o pip-audit-report.json
+
+      # Artifact report pip-audit
+      - name: Upload pip-audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-report
+          path: pip-audit-report.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  # PACKAGE: build sdist+wheel, verifica (twine check), upload artifact
+  #          — esegue solo se QUALITY & TESTS sono verdi
+  # ---------------------------------------------------------------------------
+  package:
+    name: Packaging (sdist + wheel)
+    runs-on: ubuntu-latest
+    needs: [quality, tests]
+    steps:
+      # Checkout
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Setup Python 3.11
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      # Installa backend di build e twine
+      - name: Install build backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      # Build sdist e wheel
+      - name: Build sdist and wheel
+        run: python -m build
+
+      # Validazione artifact (twine check)
+      - name: Validate artifacts (twine check)
+        run: twine check dist/*
+
+      # Upload artifact dist/ (per auditing e downstream)
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7

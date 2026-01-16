@@ -1,5 +1,5 @@
 name: "🛠️ Task / Chore"
-description: "Operational task, refactor, maintenance or internal work item"
+description: "Attività operativa, refactor, manutenzione o lavoro interno"
 title: "[Task]: "
 labels:
   - task
@@ -10,96 +10,122 @@ body:
   - type: markdown
     attributes:
       value: |
-        Use this template for **technical tasks, maintenance, refactors, or operational work**.
-        This is not intended for bugs or feature requests.
+        Usa questo template per **task tecnici**, **manutenzione**, **refactor** o **lavori operativi interni**.
+        Non è destinato a **bug** o **feature request** (usa i template dedicati).
 
   - type: input
     id: summary
     attributes:
-      label: Summary
-      description: Short, clear description of the task
-      placeholder: "Refactor build pipeline to support multi-arch caching"
+      label: Sommario
+      description: Descrizione breve e chiara del task
+      placeholder: "Refactor della pipeline di build per supportare caching multi-arch"
     validations:
       required: true
 
   - type: textarea
     id: context
     attributes:
-      label: Context / Background
-      description: Why is this task needed? Provide background or rationale.
+      label: Contesto / Background
+      description: Perché serve questo task? Fornisci contesto, motivazioni e vincoli.
       placeholder: |
-        Current situation:
-        Why this task is required:
+        Situazione attuale:
+        Perché serve questo task:
+        Vincoli/assunzioni:
     validations:
       required: true
 
   - type: textarea
     id: scope
     attributes:
-      label: Scope of Work
-      description: What needs to be done? Be explicit.
+      label: Ambito del lavoro (Scope)
+      description: Cosa deve essere fatto? Elenca attività e deliverable in modo esplicito.
       placeholder: |
-        - Update scripts
-        - Adjust CI configuration
-        - Cleanup deprecated logic
+        - Aggiornare script di setup
+        - Adeguare configurazione CI
+        - Rimuovere logica deprecata
+        - Aggiornare documentazione CLI
     validations:
       required: true
 
   - type: dropdown
     id: task_type
     attributes:
-      label: Task Type
-      description: Select the category that best fits this task
+      label: Tipo di task
+      description: Seleziona la categoria che meglio descrive il task
       options:
         - Refactor
-        - Maintenance
+        - Manutenzione
         - CI/CD
-        - Infrastructure
-        - Dependency update
-        - Security hardening
-        - Other
+        - Infrastruttura
+        - Aggiornamento dipendenze
+        - Hardening sicurezza
+        - Altro
     validations:
       required: true
 
   - type: dropdown
     id: priority
     attributes:
-      label: Priority
+      label: Priorità
       options:
-        - Low
-        - Medium
-        - High
-        - Critical
+        - Bassa
+        - Media
+        - Alta
+        - Critica
     validations:
       required: true
 
   - type: textarea
     id: acceptance_criteria
     attributes:
-      label: Acceptance Criteria
-      description: Define when this task can be considered complete
+      label: Criteri di accettazione
+      description: Definisci quando il task può considerarsi completato
       placeholder: |
-        - [ ] Criteria 1
-        - [ ] Criteria 2
-        - [ ] Criteria 3
+        - [ ] Il setup locale completa senza errori (Windows/Linux/macOS)
+        - [ ] CI verde (lint, type-check, test)
+        - [ ] Documentazione aggiornata (README/CONTRIBUTING)
+        - [ ] Nessun segreto nei log
     validations:
       required: true
 
   - type: checkboxes
     id: impact
     attributes:
-      label: Impact Assessment
-      description: Check all that apply
+      label: Valutazione impatto
+      description: Seleziona tutte le voci applicabili
       options:
-        - label: No user-facing impact
-        - label: Internal behavior change
-        - label: CI / tooling impact
-        - label: Potential breaking change
-        - label: Security-related change
+        - label: Nessun impatto lato utente
+        - label: Cambiamento di comportamento interno
+        - label: Impatto su CI / tooling
+        - label: Potenziale breaking change
+        - label: Modifica correlata alla sicurezza
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Rischi / Mitigazioni
+      description: Eventuali rischi noti e azioni di mitigazione
+      placeholder: |
+        - Rischio: ...
+        - Mitigazione: ...
+        - Rollback plan: ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dipendenze
+      description: PR/issue/moduli da cui dipende questo task (se presenti)
+      placeholder: |
+        - Dipende da: #123, #456
+        - Blocca: #789
+    validations:
+      required: false
 
   - type: textarea
     id: notes
     attributes:
-      label: Additional Notes
-      description: Any extra context, links, or considerations
-      placeholder: "Links to docs, PRs, diagrams, or follow-ups"
+      label: Note aggiuntive
+      description: Contesto extra, link, diagrammi, riferimenti
+      placeholder: "Link a documentazione, PR correlate, diagrammi, follow-up"

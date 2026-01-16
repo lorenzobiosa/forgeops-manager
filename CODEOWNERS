@@ -1,5 +1,91 @@
-# .github/CODEOWNERS
+# ==============================================================================
+# CODEOWNERS — ForgeOps Manager
+#
+# Scopo:
+#   - Definire i responsabili (code owners) per ogni area del repository.
+#   - Forzare revisioni obbligatorie su file critici (security, providers, utils).
+#   - Applicazione automatica review tramite regole di priorità GitHub.
+#
+# Documentazione GitHub:
+#   https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Nota:
+#   - Le regole più specifiche sovrascrivono quelle più generiche.
+#   - Assicurarsi che gli utenti o team indicati abbiano accesso al repository.
+# ==============================================================================
 
-# All files in this repository require review/ownership by @lorenzobiosa
 
-- @lorenzobiosa
+# ------------------------------------------------------------------------------
+# 1. OSSERVABILITÀ GENERALE — Owner globale (fallback)
+# ------------------------------------------------------------------------------
+* @lorenzobiosa
+
+
+# ------------------------------------------------------------------------------
+# 2. PROVIDERS — AREA CRITICA DI BUSINESS LOGIC
+# ------------------------------------------------------------------------------
+
+# Provider base (interfaccia + registry)
+src/providers/base.py @lorenzobiosa
+
+# GitHub provider — intero modulo (azioni, releases, packages, cache, security, social)
+src/providers/github/ @lorenzobiosa
+
+# GitLab mock (comunque sensibile per estensioni future)
+src/providers/gitlab/ @lorenzobiosa
+
+
+# ------------------------------------------------------------------------------
+# 3. UTILITY CORE (logging, config, http, token_guard, runtime)
+# ------------------------------------------------------------------------------
+src/utils/ @lorenzobiosa
+
+
+# ------------------------------------------------------------------------------
+# 4. ENTRYPOINT, CLI, MAIN
+# ------------------------------------------------------------------------------
+src/main.py @lorenzobiosa
+
+
+# ------------------------------------------------------------------------------
+# 5. WORKFLOWS CI/CD & SECURITY
+# ------------------------------------------------------------------------------
+.github/workflows/ @lorenzobiosa
+.github/dependabot.yml @lorenzobiosa
+.github/CODEOWNERS @lorenzobiosa
+.github/ISSUE_TEMPLATE/ @lorenzobiosa
+.github/PULL_REQUEST_TEMPLATE.md @lorenzobiosa
+
+
+# ------------------------------------------------------------------------------
+# 6. DOCUMENTAZIONE
+# ------------------------------------------------------------------------------
+docs/ @lorenzobiosa
+
+README.md        @lorenzobiosa
+CONTRIBUTING.md  @lorenzobiosa
+CODE_OF_CONDUCT.md @lorenzobiosa
+SECURITY.md      @lorenzobiosa
+CHANGELOG.md     @lorenzobiosa
+
+
+# ------------------------------------------------------------------------------
+# 7. QUALITY & BUILD CONFIGURATION
+# ------------------------------------------------------------------------------
+pyproject.toml          @lorenzobiosa
+requirements.txt        @lorenzobiosa
+.pre-commit-config.yaml @lorenzobiosa
+.editorconfig           @lorenzobiosa
+.flake8                 @lorenzobiosa
+
+
+# ------------------------------------------------------------------------------
+# 8. SCRIPTS & INFRA
+# ------------------------------------------------------------------------------
+scripts/ @lorenzobiosa
+
+
+# ------------------------------------------------------------------------------
+# 9. TEST SUITE
+# ------------------------------------------------------------------------------
+tests/ @lorenzobiosa

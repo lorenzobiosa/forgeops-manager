@@ -1,1 +1,25 @@
+# =============================================================================
+# GitHub Issue Template Config
+# Descrizione:
+#   - Disabilita le "blank issues" per forzare l'uso dei template.
+#   - Aggiunge link di contatto utili (documentazione, policy, sicurezza).
+# =============================================================================
+
 blank_issues_enabled: false
+
+contact_links:
+  - name: "📖 Leggi prima: README"
+    url: https://github.com/<org>/<repo>/blob/main/README.md
+    about: Panoramica, uso della CLI, requisiti e esempi. Consulta prima di aprire una issue.
+
+  - name: "🤝 Linee guida per contribuire (CONTRIBUTING)"
+    url: https://github.com/<org>/<repo>/blob/main/CONTRIBUTING.md
+    about: Stile, checklist PR, test, tipizzazione, logging, sicurezza. Segui queste regole per le PR.
+
+  - name: "🔐 Segnalazioni di Sicurezza (SECURITY)"
+    url: https://github.com/<org>/<repo>/blob/main/SECURITY.md
+    about: Non aprire issue pubbliche per vulnerabilità. Segui responsible disclosure (email + GPG).
+
+  - name: "🌟 Codice di Condotta (CODE_OF_CONDUCT)"
+    url: https://github.com/<org>/<repo>/blob/main/CODE_OF_CONDUCT.md
+    about: Ambiente rispettoso e collaborativo. Come segnalare comportamenti non accettabili.

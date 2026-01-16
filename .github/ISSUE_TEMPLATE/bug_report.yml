@@ -1,5 +1,5 @@
 name: "🐛 Bug Report"
-description: "Report a bug, unexpected behavior, or defect in the system"
+description: "Segnala un bug, un comportamento inatteso o un difetto nel sistema"
 title: "[Bug]: "
 labels:
   - bug
@@ -10,84 +10,181 @@ body:
   - type: markdown
     attributes:
       value: |
-        Use this template to report a **bug or defect** in the system.  
-        Please provide as much detail as possible to help reproduce and fix the issue.
+        Usa questo template per segnalare un **bug o difetto**.
+        Fornisci **tutti i dettagli necessari** per permettere la riproduzione e la correzione del problema.
+        **Non inserire segreti** (token, password, chiavi) in log, screenshot o allegati.
 
   - type: input
     id: summary
     attributes:
-      label: Summary
-      description: Short, clear description of the bug
-      placeholder: "e.g. 'kubectl deployment fails on ARM64 builds'"
+      label: Sommario
+      description: Descrizione breve e chiara del problema
+      placeholder: "Esempio: 'Cancellazione releases fallisce se la risposta non è una lista'"
     validations:
       required: true
 
   - type: textarea
     id: steps_to_reproduce
     attributes:
-      label: Steps to Reproduce
-      description: Provide a step-by-step guide to reproduce the bug
+      label: Passi per riprodurre
+      description: Guida passo‑passo per riprodurre il bug (comandi, input, condizioni)
       placeholder: |
-        1. Step one
-        2. Step two
-        3. Observe the bug
+        1. Esegui: python -m src.providers.github.releases --owner X --repo Y
+        2. Osserva l'output/stack trace
+        3. Errore: <inserire messaggio sintetico>
     validations:
       required: true
 
   - type: textarea
     id: expected_behavior
     attributes:
-      label: Expected Behavior
-      description: What you expected to happen
-      placeholder: "The deployment should succeed without errors"
+      label: Comportamento atteso
+      description: Cosa ti aspettavi accadesse
+      placeholder: "Le releases dovrebbero essere eliminate e dovrebbe comparire il riepilogo 'Totale releases eliminate: N'"
     validations:
       required: true
 
   - type: textarea
     id: actual_behavior
     attributes:
-      label: Actual Behavior
-      description: What actually happened
-      placeholder: "The deployment fails with error XYZ"
+      label: Comportamento riscontrato
+      description: Cosa accade realmente (riassunto dell’errore)
+      placeholder: "Operazione interrotta con RuntimeError: 'Risposta inattesa: atteso array.'"
     validations:
       required: true
 
   - type: textarea
     id: environment
     attributes:
-      label: Environment
-      description: Specify OS, architecture, version, CI/CD environment, etc.
+      label: Ambiente
+      description: Specifica sistema operativo, architettura, versione Python, shell, CI/CD, ecc.
       placeholder: |
-        - OS: Ubuntu 22.04
-        - Arch: arm64
-        - Toolchain version: 1.25.5
-        - CI: GitHub Actions
+        - OS: Ubuntu 22.04 / Windows 11 / macOS 14
+        - Arch: x86_64 / arm64
+        - Python: 3.11.8 (venv attiva)
+        - Shell: Bash / PowerShell
+        - CI: GitHub Actions (runner ubuntu‑latest)
+        - Proxy: sì/no
     validations:
       required: true
+
+  - type: input
+    id: tool_versions
+    attributes:
+      label: Versioni strumenti/dipendenze rilevanti (facoltativo)
+      description: Versioni che possono influire (es. requests, pre-commit, ecc.)
+      placeholder: "requests 2.32.x, pre-commit 3.x, black 23.x"
+
+  - type: input
+    id: project_version
+    attributes:
+      label: Versione del progetto / commit
+      description: Indica tag, versione o commit hash (se noto)
+      placeholder: "v1.2.0 / commit abcdef1"
 
   - type: dropdown
     id: severity
     attributes:
-      label: Severity
-      description: How critical is this bug
+      label: Severità
+      description: Quanto è critico il bug?
       options:
-        - Low
-        - Medium
-        - High
-        - Critical
+        - Bassa
+        - Media
+        - Alta
+        - Critica
     validations:
       required: true
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: Frequenza
+      description: Quanto spesso si verifica il problema?
+      options:
+        - Una volta
+        - Sporadico
+        - Ricorrente
+        - label: Potenziale perdita di dati        - Sempre riproducibile
+        - label: Impatto sicurezza / permessi / token
+        - label: Rumore eccessivo nei log / osservabilità
+
+  - type: textarea
+    id: affected_areas
+    attributes:
+      label: Aree coinvolte
+      description: Moduli, file o componenti interessati
+      placeholder: |
+        Esempi:
+        - src/providers/github/security.py (follow-up DELETE, rate-limit)
+        - src/providers/github/packages.py (parse versioni)
+        - src/utils/http.py (wrapper API)
+        - src/main.py (arg parsing per operazione X)
 
   - type: textarea
     id: logs
     attributes:
-      label: Logs / Screenshots
-      description: Paste error messages, stack traces, or screenshots
-      placeholder: "Paste logs or screenshots here"
+      label: Log / Stack trace (redatti)
+      description: Incolla messaggi di errore o stack trace (rimuovi segreti/PII). Includi eventi `log_event` rilevanti.
+      placeholder: |
+        [ERRORE] ...
+        { "event": "security_list_analyses_error", "status": 500, ... }
+      render: shell
 
   - type: textarea
-    id: additional_notes
+    id: additional_artifacts
     attributes:
-      label: Additional Notes
-      description: Any extra context or links (PRs, issues, documentation)
-      placeholder: "Optional"
+      label: Screenshot / Allegati (facoltativo)
+      description: Screenshot, link a gist/pastebin, file di supporto (senza segreti)
+      placeholder: "Link a gist/paste con output CLI, screenshot errori, ecc."
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Workaround (se presente)
+      description: Soluzione temporanea adottata (se esiste)
+      placeholder: "Eseguire con --state open, poi ripetere l'operazione…"
+
+  - type: checkboxes
+    id: regression
+    attributes:
+      label: Regressione
+      description: Il problema era assente in versioni precedenti?
+      options:
+        - label: Sì, regressione rispetto a una versione precedente
+        - label: No, comportamento mai funzionante
+        - label: Non so / non verificato
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Criteri di accettazione
+      description: Quando il bug può considerarsi risolto?
+      placeholder: |
+        - [ ] Riproduzione non più possibile seguendo i passi indicati
+        - [ ] Test automatici aggiunti/aggiornati
+        - [ ] Log strutturati adeguati (senza segreti)
+        - [ ] Documentazione/README aggiornata se necessario
+    validations:
+      required: true
+
+  - type: textarea
+    id: links
+    attributes:
+      label: Link correlati
+      description: PR, issue, documentazione, commit correlati
+      placeholder: |
+        - PR: #123
+        - Issue: #456
+        - Doc: README.md sezione "Code Scanning"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: Impatto
+      description: Seleziona tutto ciò che si applica
+      options:
+        - label: Interruzione flusso CLI
+        - label: Dati non modificati ma operazione fallita
+        - label: Operazione parzialmente distruttiva

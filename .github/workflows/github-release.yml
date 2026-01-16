@@ -1,0 +1,275 @@
+# =============================================================================
+# GitHub Release - Enterprise / Production Ready
+# Autore:        Lorenzo Biosa
+# Email:         lorenzo@biosa-labs.com
+# Copyright:
+#   © 2026 Biosa Labs. Tutti i diritti riservati.
+#   Questo workflow è parte del progetto ForgeOps Manager.
+#
+# Funzioni:
+#   - Rilascia su tag (push refs/tags/vX.Y.Z) oppure manualmente (workflow_dispatch).
+#   - Genera CHANGELOG dai PR/commit (conventional commits-friendly).
+#   - Build pacchetti Python (sdist + wheel) e crea archivi (zip/tar.gz).
+#   - Allegati: pacchetti, archivi e checksum SHA256.
+#   - Pubblica la Release su GitHub con asset allegati.
+#   - (Post-release) purga la GitHub Actions cache del repository.
+#
+# Note:
+#   - Permessi necessari: contents: write, actions: write.
+#   - Non inserire segreti; usa il GITHUB_TOKEN fornito da GitHub Actions.
+# =============================================================================
+
+name: GitHub Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*" # Rilascio automatico al push di tag SemVer
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: "Versione SemVer senza prefisso (es.: 1.2.3 o 1.2.3-rc.1)"
+        required: false
+        type: string
+      prerelease:
+        description: "Marca la release come pre-release?"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write # Necessario per creare la Release e allegare asset
+  actions: write # Necessario per purgare la Actions cache
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+
+    steps:
+      # -----------------------------------------------------------------------
+      # Checkout (fetch-depth: 0 per poter creare/pushare tag)
+      # -----------------------------------------------------------------------
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # -----------------------------------------------------------------------
+      # Setup Python e dipendenze build
+      # -----------------------------------------------------------------------
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      # -----------------------------------------------------------------------
+      # Determina TAG (da push su tag oppure da input workflow_dispatch)
+      # - Se workflow_dispatch con 'release_version': crea e pusha il tag vX.Y.Z
+      # -----------------------------------------------------------------------
+      - name: Determine tag
+        id: tagvars
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF:-}" =~ refs/tags/ ]]; then
+            TAG="${GITHUB_REF##refs/tags/}"
+            echo "tag_source=ref" >> "$GITHUB_OUTPUT"
+            echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          else
+            RV="${RELEASE_VERSION:-}"
+            if [[ -z "$RV" ]]; then
+              echo "ERRORE: 'release_version' mancante in workflow_dispatch." >&2
+              exit 2
+            fi
+            if ! [[ "$RV" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9\.-]+)?$ ]]; then
+              echo "ERRORE: Versione non valida. Atteso SemVer (es. 1.2.3 o 1.2.3-rc.1)" >&2
+              exit 2
+            fi
+            TAG="v$RV"
+            echo "tag_source=input" >> "$GITHUB_OUTPUT"
+            echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          fi
+          echo "TAG determinato: $TAG"
+
+      - name: Create & push tag (only on dispatch)
+        if: ${{ steps.tagvars.outputs.tag_source == 'input' }}
+        env:
+          TAG: ${{ steps.tagvars.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+
+      # -----------------------------------------------------------------------
+      # Sanity check versione progetto vs tag (non blocking)
+      # -----------------------------------------------------------------------
+      - name: Version sanity check (pyproject vs tag)
+        shell: bash
+        env:
+          TAG: ${{ steps.tagvars.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if [[ -f "pyproject.toml" ]]; then
+            VER="$(python -c "import tomllib;print(tomllib.load(open('pyproject.toml','rb')).get('project',{}).get('version',''))" || true)"
+            if [[ -n "$VER" ]]; then
+              TAG_NO_V="${TAG#v}"
+              if [[ "$VER" != "$TAG_NO_V" ]]; then
+                echo "::warning::Versione pyproject.toml ($VER) diversa dal tag ($TAG_NO_V)"
+              else
+                echo "Versione coerente: $VER"
+              fi
+            else
+              echo "Nessuna 'project.version' in pyproject.toml (skip check)."
+            fi
+          else
+            echo "pyproject.toml non presente (skip check)."
+          fi
+
+      # -----------------------------------------------------------------------
+      # Build pacchetti (sdist + wheel) e verifica
+      # -----------------------------------------------------------------------
+      - name: Build sdist & wheel
+        run: python -m build
+
+      - name: Validate artifacts (twine check)
+        run: twine check dist/*
+
+      # -----------------------------------------------------------------------
+      # Archivi binari aggiuntivi (zip & tar.gz dei dist/) + SHA256
+      # -----------------------------------------------------------------------
+      - name: Archive dist (zip & tar.gz) + SHA256
+        run: |
+          set -euo pipefail
+          (cd dist && zip -r9 ../forgeops-manager-dist.zip .)
+          (cd dist && tar -czf ../forgeops-manager-dist.tar.gz .)
+          # Genera checksum
+          sha256sum dist/* > SHASUMS256.txt
+          sha256sum forgeops-manager-dist.zip forgeops-manager-dist.tar.gz >> SHASUMS256.txt
+          echo "Contenuto SHASUMS256.txt:"
+          cat SHASUMS256.txt
+          ls -lah dist forgeops-manager-dist.*
+
+      # -----------------------------------------------------------------------
+      # Genera CHANGELOG (conventional commits)
+      #  - Se siamo su push di tag, l'action può dedurre il tag corrente.
+      #  - Su dispatch, passiamo esplicitamente 'toTag' (il TAG calcolato).
+      # -----------------------------------------------------------------------
+      - name: Build release notes (conventional commits)
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v5
+        if: ${{ always() }}
+        with:
+          configurationJson: |
+            {
+              "template": "## 📦 Release ${version}\n\n### 🔄 Changes\n$CHANGES",
+              "pr_template": "- $TITLE (#$NUMBER) by @$AUTHOR",
+              "commit_template": "- $TITLE ($SHA)",
+              "empty_template": "Nessun cambiamento rilevante.",
+              "categories": [
+                { "title": "Features", "labels": ["feat", "feature", "enhancement"] },
+                { "title": "Fix",      "labels": ["fix", "bug"] },
+                { "title": "Docs",     "labels": ["docs"] },
+                { "title": "Build/CI", "labels": ["build", "ci"] },
+                { "title": "Chore",    "labels": ["chore"] }
+              ],
+              "sort": "ASC",
+              "includeOpen": false,
+              "ignoreLabels": ["skip-changelog"]
+            }
+          # Se l'evento è dispatch (non in ref tag), forziamo il toTag:
+          toTag: ${{ steps.tagvars.outputs.tag }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Riferimenti:
+        # - inputs supportati: fromTag/toTag/configuration/configurationJson/token
+        #   https://github.com/mikepenz/release-changelog-builder-action (v5)
+        #   (I valori sono opzionali; su push di tag, si può omettere toTag)
+        #   cite: turn90search28, turn90search30
+
+      # -----------------------------------------------------------------------
+      # Crea Release su GitHub con asset e body (CHANGELOG generato)
+      # -----------------------------------------------------------------------
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tagvars.outputs.tag }}
+          name: ForgeOps Manager ${{ steps.tagvars.outputs.tag }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          # Se workflow_dispatch, usa l’input 'prerelease'; altrimenti false
+          prerelease: ${{ github.event_name == 'workflow_dispatch' && inputs.prerelease }}
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+            forgeops-manager-dist.zip
+            forgeops-manager-dist.tar.gz
+            SHASUMS256.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Doc ufficiale action-gh-release (@v2)
+        # https://github.com/softprops/action-gh-release
+        # cite: turn90search17
+
+      # -----------------------------------------------------------------------
+      # Pubblica anche gli artifact come Artifacts del workflow (audit)
+      # -----------------------------------------------------------------------
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ steps.tagvars.outputs.tag }}
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+            forgeops-manager-dist.zip
+            forgeops-manager-dist.tar.gz
+            SHASUMS256.txt
+          if-no-files-found: error
+          retention-days: 14
+
+      # -----------------------------------------------------------------------
+      # Post-release: purge GitHub Actions cache (tutte le cache correnti)
+      # -----------------------------------------------------------------------
+      - name: Purge GitHub Actions caches (all keys/refs)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo  = context.repo.repo;
+            const res = await github.request('GET /repos/{owner}/{repo}/actions/caches', { owner, repo });
+            const items = (res.data?.actions_caches) || [];
+            core.info(`Cache trovate: ${items.length}`);
+            let deleted = 0;
+            for (const c of items) {
+              try {
+                await github.request('DELETE /repos/{owner}/{repo}/actions/caches/{cache_id}', {
+                  owner, repo, cache_id: c.id
+                });
+                deleted++;
+                core.info(`Eliminata cache id=${c.id} key="${c.key}" ref="${c.ref}"`);
+              } catch (err) {
+                core.warning(`Errore eliminando cache id=${c.id}: ${err}`);
+              }
+            }
+            core.info(`Cache eliminate: ${deleted}/${items.length}`);
+        # Doc REST API cache:
+        # https://docs.github.com/en/rest/actions/cache
+        # Guida "Managing caches":
+        # https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manage-caches

@@ -1,0 +1,18 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+
+    // Formatter e import (estensioni ufficiali decoupled)
+    "ms-python.black-formatter",
+    "ms-python.isort",
+
+    // Linting e type-check in editor (opzionali ma consigliati)
+    "ms-python.flake8",
+    "ms-python.mypy-type-checker",
+
+    // Utility
+    "EditorConfig.EditorConfig",
+    "github.vscode-pull-request-github"
+  ]
+}

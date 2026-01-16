@@ -1,141 +1,247 @@
-# 🤝 Contributing to This Project
+# 🤝 Linee guida per contribuire
 
-Thank you for your interest in contributing! 🙌  
-We welcome and appreciate all community contributions — whether fixing bugs, improving docs, reporting issues, or proposing new features.
-
-To make collaboration effective, consistent, and scalable, please follow the guidelines below.
-
----
-
-## 🚀 Table of Contents
-
-1. 🧭 Getting Started
-2. 📌 How Can You Contribute
-3. 📝 Issues & Pull Requests
-4. 📋 Coding Standards
-5. 🧪 Testing
-6. 📣 Communication & Conduct
-7. 📦 Code of Conduct & Security
-8. 🛠 Where to Find Help
+Grazie per l’interesse nel contribuire! 🙌
+Accogliamo con piacere contributi di ogni tipo: **bug fix**, **migliorie**, **documentazione**, **segnalazioni** e **nuove feature**.
+Per garantire collaborazione efficace, coerente e scalabile, segui per favore le linee guida sottostanti.
 
 ---
 
-## 🧭 Getting Started
+## 🧭 Indice
 
-Before contributing, ensure:
-
-🔹 You have reviewed the **README** and understand the project’s goals.  
-🔹 You have read this **CONTRIBUTING.md** file.  
-🔹 You are using a GitHub account with a public profile.
-
-💡 If you’re new, start by looking for issues labeled:
-
-- `good first issue` (beginner friendly)
-- `help wanted` (open to external contributions)
-
-See our Issue Templates for structured reporting. :contentReference[oaicite:1]{index=1}
+1.  Ambito e requisiti
+2.  Come contribuire
+3.  Issue & Pull Request
+4.  Stile del codice
+5.  Test e qualità
+6.  Sicurezza e segnalazioni
+7.  Comunicazione e condotta
+8.  Flusso di release e versioning
+9.  Ambiente di sviluppo: comandi rapidi
+10. Domande e supporto
 
 ---
 
-## 📌 How Can You Contribute
+## 📌 Ambito e requisiti
 
-### 🐛 Report Bugs
+Prima di contribuire, assicurati di:
 
-Use the **Bug Report** template when you find unexpected behavior or errors.
+- Aver letto il **README** per comprendere obiettivi e funzionalità del progetto.
+- Seguire questo documento **CONTRIBUTING.md**.
+- Utilizzare **Python 3.10+** e una **virtualenv** isolata.
+- Non inserire **mai** segreti nei log o nel codice (token, password, chiavi).
 
-### 💡 Suggest Features
+**Tecnologie principali**:
 
-Use the **Feature Request** template to propose enhancements or new capabilities.
-
-### 📘 Improve Documentation
-
-Contributions that improve clarity, examples, or accuracy are highly valued.
-
-### 🧰 Fix or Add Code
-
-If you’re submitting code changes, please follow the steps below.
+- Python (CLI e servizi)
+- Tipizzazione statica (**Pylance/mypy**)
+- Linting/formatting (**flake8**, **black**, **isort**)
+- Test (**pytest**)
+- Logging strutturato (JSON/Plain) con **`src.utils.logging`**
+- Integrazione GitHub (HTTP API), gestione **rate‑limit**
 
 ---
 
-## 📝 Issues & Pull Requests (PRs)
+## 🚀 Come contribuire
 
-1. 🔍 **Search existing issues/PRs** before opening a new one.
-2. For bugs/features, **fill out the provided templates**.
-3. Link your PR to at least one issue with:
+Puoi contribuire in diversi modi:
 
-```text
-Closes #<issue_number>
+### 🐛 Segnalare bug
+
+- Apri una **Issue** usando il template _Bug Report_.
+- Includi: passi per riprodurre, comportamento atteso/evidenze, versione, OS.
+
+### 💡 Proporre feature
+
+- Apri una **Issue** usando il template _Feature Request_.
+- Spiega il problema da risolvere, il valore per l’utente, eventuali alternative.
+
+### 📘 Migliorare la documentazione
+
+- Correggi errori, aggiorna esempi, aggiungi sezioni utili.
+- Le PR di sola documentazione sono benvenute.
+
+### 🧰 Inviare codice
+
+- Consulta le sezioni: **Stile del codice**, **Test e qualità**, **Issue & PR**.
+
+---
+
+## 📝 Issue & Pull Request
+
+1.  **Cerca** tra le issue/PR esistenti prima di aprirne di nuove.
+2.  Usa sempre i **template** appropriati (bug/feature).
+3.  Collega la PR a una issue tramite:
+    ```text
+    Closes #<numero_issue>
+    ```
+4.  Titoli PR secondo **Conventional Commits** (vedi sotto), ad es.:
+    ```text
+    feat: aggiunge dismiss alerts per Code Scanning
+    fix: corregge gestione rate limit su delete analyses
+    docs: aggiorna guida social-sync
+    ```
+5.  La PR deve includere:
+    - Descrizione chiara di cosa cambia e perché
+    - Evidenza di test locali (comando eseguito, output sintetico)
+    - Eventuali impatti (breaking changes, migrazioni)
+6.  **Checklist PR** (obbligatoria):
+    - [ ] Test locali passano (`pytest`), linting e formatting passano
+    - [ ] Nessun **segreto** esposto nei log o nel codice
+    - [ ] Logging coerente (`log_event`) senza PII/token
+    - [ ] Tipi e firme coerenti (nessun warning Pylance)
+    - [ ] Documentazione aggiornata se serve (README/CLI)
+
+> **Nota**: le PR vengono accettate solo se la **CI** è verde (lint, type‑check, test).
+
+---
+
+## 📋 Stile del codice
+
+**Conventional Commits** (obbligatorio):
+
+- `feat:` nuova funzionalità
+- `fix:` correzione bug
+- `docs:` documentazione
+- `refactor:`, `perf:`, `test:`, `build:`, `ci:`, `chore:`
+
+**Formattazione e lint**:
+
+- **black** (line‑length 100)
+- **isort** (ordinamento import)
+- **flake8** (lint)
+- **mypy**/**Pylance** (tipi)
+
+**Linee guida Python**:
+
+- Tipizza sempre pubbliche API e funzioni principali
+- Evita side‑effects all’import (configura logging solo in `main()` o CLI)
+- Evita `print` se non per UX CLI; preferisci `log_event` per telemetria
+- Non loggare **mai** segreti (token/credenziali)
+- Funzioni piccole e focalizzate; fallisci **velocemente** con messaggi chiari
+- Scrivi messaggi di commit chiari e sintetici
+
+---
+
+## 🧪 Test e qualità
+
+**Test**:
+
+- Usa **pytest**
+- Mocka le chiamate HTTP (es.: `responses`, `pytest-httpx`, o doppio level di mock a livello `src.providers.github.api`)
+- Testa i percorsi “critici”:
+  - `security.py`: delete/dismiss, gestione confirm/next, rate‑limit
+  - `packages.py`: parsing versioni/ID, cancellazione versioni
+  - `releases.py`, `cache.py`: paginazione/iterazioni e error handling
+
+**Quality gates** (obbligatori prima di aprire PR):
+
+```bash
+# Ambiente
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+
+# Lint & formatting
+black . --check
+isort . --check-only
+flake8 .
+
+# Tipi
+mypy src
+
+# Test
+pytest -q
+# (opzionale) coverage:
+pytest --cov=src --cov-report=term-missing
 ```
 
-4. Use meaningful PR titles:
+> Se usi **pre‑commit**, configura gli hook per eseguire automaticamente i controlli.
 
-```text
-[Type]: Short summary
+---
+
+## 🔐 Sicurezza e segnalazioni
+
+- **Non aprire issue pubbliche** per vulnerabilità: segui la policy in `SECURITY.md` (responsible disclosure).
+- Non includere mai token/credenziali nei commit, issue, o log.
+- Evita di serializzare payload completi nei log; privilegia metadati sicuri.
+- Verifica sempre gli header usati per le API GitHub:
+  - `Accept: application/vnd.github+json`
+  - `X-GitHub-Api-Version: 2022-11-28`
+  - `Authorization: Bearer <TOKEN>` (**mai loggarlo**)
+
+---
+
+## 💬 Comunicazione e condotta
+
+Adottiamo un ambiente **aperto, rispettoso e collaborativo**.
+Partecipando, accetti di:
+
+- Comunicare con rispetto e chiarezza
+- Evitare linguaggio ostile o discriminatorio
+- Fornire feedback costruttivi e circostanziati
+
+Consulta **CODE_OF_CONDUCT.md** per i dettagli.
+
+---
+
+## 🚢 Flusso di release e versioning
+
+- **SemVer**: `MAJOR.MINOR.PATCH`
+- Ogni PR dovrebbe seguire i **Conventional Commits** per facilitare CHANGELOG e release notes
+- **CHANGELOG.md** mantenuto e aggiornato durante le release
+- Rilascio:
+  - Tag delle versioni (`vX.Y.Z`)
+  - Changelog generato (automatico se configurato)
+  - (Opzionale) pubblicazione su PyPI privato / GitHub Packages
+
+---
+
+## 🧰 Ambiente di sviluppo: comandi rapidi
+
+### Setup locale
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate            # .\.venv\Scripts\Activate.ps1 su Windows
+pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
-e.g., „`[Feature]: Add multi‑architecture support`“.
+### Lint/format/type/test
 
-Our workflows automate validation, labeling, and issue linking. Before merging, **all checklist items must be completed**. :contentReference[oaicite:2]{index=2}
+```bash
+black . --check
+isort . --check-only
+flake8 .
+mypy src
+pytest -q
+```
 
----
+### Esecuzione CLI
 
-## 📋 Coding Standards
+```bash
+# Menu interattivo
+python -m src.main
 
-To keep the codebase consistent:
-
-✅ Follow the established **code formatting style**  
-✅ Use **clear and descriptive identifiers**  
-✅ Keep functions focused and concise  
-✅ Add comments where logic is complex  
-✅ Follow the PR checklist in the PR template
-
----
-
-## 🧪 Testing
-
-✔ Include tests for new features or bug fixes.  
-✔ Existing tests should pass before your PR can be merged.  
-✔ Add documentation for any public APIs or major behavior changes.
-
-Our CI workflows will automatically run all checks.
+# Esempi diretti
+python -m src.providers.github.cache --owner <org> --repo <repo> --log-json
+python -m src.providers.github.releases --owner <org> --repo <repo> --log-json
+python -m src.providers.github.packages --org <org> --type container --list
+python -m src.providers.github.security --repo <org>/<repo> --mode delete --tools "Trivy,Grype"
+python -m src.main social-sync --token "$GH_TOKEN" --dry-run --log-json
+```
 
 ---
 
-## 📣 Communication & Conduct
+## ❓ Domande e supporto
 
-We adhere to a welcoming and respectful community environment.  
-By participating, you agree to:
-
-✨ Be respectful and clear in communication  
-✨ Engage constructively even when disagreeing  
-✨ Avoid hostile or disruptive language
-
-This helps maintain a positive and productive experience for all.
-
-See our **CODE_OF_CONDUCT.md** for detailed expectations.
+- Consulta **README.md**
+- Apri una **Issue** per domande tecniche (se non sensibili)
+- Per tematiche di sicurezza, segui **SECURITY.md**
 
 ---
 
-## 📦 Code of Conduct & Security
+## 🎉 Grazie!
 
-🔐 Security is taken seriously. If you discover a vulnerability, do **not** open a public issue. Instead, follow the procedures in **SECURITY.md** to report it confidentially.
-
-See our code of conduct and security procedures for more info. :contentReference[oaicite:3]{index=3}
-
----
-
-## 🛠 Where to Find Help
-
-If something isn’t clear:
-
-📌 Join discussions (if enabled)  
-📌 Refer to `README.md` and docs  
-📌 Ask in relevant channels if your org/project uses Slack, Teams, Discord, etc.
-
----
-
-## 🎉 Thank You!
-
-We truly appreciate your time and effort — every contribution helps improve this project! 🚀
+Il tuo contributo è prezioso: grazie per aiutare a rendere il progetto migliore! 🚀
 
 ---

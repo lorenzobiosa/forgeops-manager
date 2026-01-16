@@ -1,5 +1,5 @@
-name: "🚀 Feature Request"
-description: "Request a new feature or enhancement"
+name: "🚀 Richiesta Feature / Enhancement"
+description: "Richiedi una nuova funzionalità o un miglioramento"
 title: "[Feature]: "
 labels:
   - enhancement
@@ -10,67 +10,182 @@ body:
   - type: markdown
     attributes:
       value: |
-        Use this template to **request a new feature or enhancement**.  
-        Provide context, rationale, and details to help assess the value.
+        Usa questo template per **richiedere una nuova funzionalità** o un **miglioramento**.
+        Fornisci **contesto**, **motivazione** e **dettagli** per valutare valore, impatto e fattibilità.
 
   - type: input
     id: summary
     attributes:
-      label: Summary
-      description: Short, clear description of the feature
-      placeholder: "e.g. 'Add multi-arch support for custom Docker images'"
+      label: Sommario
+      description: Descrizione breve e chiara della feature
+      placeholder: "Esempio: 'Supporto multi-arch per immagini Docker custom'"
     validations:
       required: true
 
   - type: textarea
     id: motivation
     attributes:
-      label: Motivation / Why
-      description: Why is this feature needed? Business or technical value?
-      placeholder: "Explain the problem or opportunity this feature addresses"
+      label: Motivazione / Perché
+      description: Perché serve? Qual è il valore (business/tecnico) e il problema che risolve?
+      placeholder: |
+        - Problema attuale / opportunità:
+        - Impatto su utenti / team:
+        - Benefici attesi:
     validations:
       required: true
 
   - type: textarea
+    id: user_story
+    attributes:
+      label: User Story (facoltativa ma consigliata)
+      description: Formula come user story per chiarire il valore per l’utente.
+      placeholder: |
+        Come <ruolo/persona>,
+        voglio <obiettivo/azione>,
+        così da <valore/beneficio>.
+    validations:
+      required: false
+
+  - type: textarea
     id: proposed_solution
     attributes:
-      label: Proposed Solution
-      description: Describe how you envision the feature working
+      label: Soluzione proposta
+      description: Come immagini la feature? Dettaglia design/architettura/approccio.
       placeholder: |
-        - Suggested implementation
-        - Architecture or approach
-        - Alternatives considered
+        - Approccio tecnico:
+        - Moduli/aree coinvolte:
+        - Cambiamenti a CLI/API:
+        - Persistenza/telemetria/log richiesti:
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative considerate
+      description: Quali alternative sono state valutate? Pro e contro sintetici.
+      placeholder: |
+        - Alternativa A: pro/contro
+        - Alternativa B: pro/contro
+    validations:
+      required: false
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Ambito (Scope) / Non-Obiettivi (Out of Scope)
+      description: Cosa è incluso ed escluso. Evita ambiguità.
+      placeholder: |
+        **Scope**:
+        - ...
+        **Out of scope**:
+        - ...
     validations:
       required: true
 
   - type: textarea
     id: acceptance_criteria
     attributes:
-      label: Acceptance Criteria
-      description: Conditions that define when the feature is done
+      label: Criteri di accettazione
+      description: Condizioni verificabili che definiscono “feature completata”
       placeholder: |
-        - [ ] Feature implemented
-        - [ ] Tests added
-        - [ ] Documentation updated
+        - [ ] Implementazione completata (moduli X/Y/Z)
+        - [ ] Test automatici a copertura dei flussi principali
+        - [ ] Documentazione CLI/README aggiornata
+        - [ ] Log strutturati (`log_event`) senza segreti
+        - [ ] Compatibilità mantenuta (o documentata se breaking)
     validations:
       required: true
 
   - type: dropdown
     id: priority
     attributes:
-      label: Priority
-      description: How urgent or important is this feature
+      label: Priorità
+      description: Urgenza/importanza della richiesta
       options:
-        - Low
-        - Medium
-        - High
-        - Critical
+        - Bassa
+        - Media
+        - Alta
+        - Critica
     validations:
       required: true
+
+  - type: input
+    id: effort
+    attributes:
+      label: Stima sforzo (grossolana)
+      description: Stima indicativa (es. S/M/L o giorni-uomo)
+      placeholder: "Esempio: M (3-5gg) / 5gg"
+    validations:
+      required: false
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impatti e compatibilità
+      description: Indica impatti su API/CLI/UX, compatibilità, migrazioni richieste.
+      placeholder: |
+        - Impatti su CLI/API pubbliche:
+        - Migrazioni richieste:
+        - Compatibilità (backward/forward):
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: security
+    attributes:
+      label: Sicurezza e privacy
+      description: Seleziona tutto ciò che si applica; dettaglia in “Note aggiuntive” se necessario.
+      options:
+        - label: Nessun dato sensibile trattato
+        - label: Richiede nuovi permessi/scope (GitHub token, repo, security-events)
+        - label: Impatta su logging/telemetria (nuovi eventi `log_event`)
+        - label: Rischio di esposizione segreti (mitigazioni previste)
+        - label: Richiede hardening (rate-limit, retry, validazioni input)
+    validations:
+      required: false
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dipendenze / Vincoli
+      description: PR/issue/moduli/servizi esterni da cui dipende la feature.
+      placeholder: |
+        - Dipende da: #123, modulo X
+        - Vincoli: API Y, policy Z
+    validations:
+      required: false
+
+  - type: textarea
+    id: rollout
+    attributes:
+      label: Rollout & Revert
+      description: Piano di rilascio e di rollback in caso di problemi.
+      placeholder: |
+        **Rollout**:
+        - Ambienti (dev/stage/prod), flag, comunicazione
+        **Revert plan**:
+        - Passi per ripristino stato precedente, dati non recuperabili
+    validations:
+      required: false
+
+  - type: textarea
+    id: metrics
+    attributes:
+      label: Metriche / Osservabilità
+      description: Come misureremo il successo? Eventi/metriche/tracing.
+      placeholder: |
+        - KPI/metriche:
+        - Eventi di log (`log_event`) aggiunti/aggiornati:
+        - Tracing/OTel (se presente):
+    validations:
+      required: false
 
   - type: textarea
     id: additional_notes
     attributes:
-      label: Additional Notes
-      description: Any extra context, diagrams, or links to related PRs/issues
-      placeholder: "Optional"
+      label: Note aggiuntive / Riferimenti
+      description: Contesto extra, diagrammi, link a PR/issue correlate o documenti di design.
+      placeholder: "Link a documentazione, diagrammi, PoC, PR correlate, esempi CLI"
+    validations:
+      required: false

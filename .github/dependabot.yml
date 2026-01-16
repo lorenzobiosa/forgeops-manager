@@ -1,0 +1,155 @@
+# ==============================================================================
+# Dependabot - Configurazione Enterprise / Production Ready
+# Autore:        Lorenzo Biosa
+# Email:         lorenzo@biosa-labs.com
+# Copyright:
+#   © 2026 Biosa Labs. Tutti i diritti riservati.
+#   Questo file è parte del progetto ForgeOps Manager.
+#
+# Posizione: .github/dependabot.yml
+# Scopo:
+#   - Aggiornamenti automatici per:
+#       * GitHub Actions (workflow)
+#       * Librerie Python (requirements.txt)
+#       * Container (Dockerfile)
+#   - Politiche di pianificazione, grouping, etichette, sicurezza.
+# Note:
+#   - Non inserire segreti in questo file.
+#   - I PR generati dovrebbero passare tramite le regole di protezione branch e CI.
+# ==============================================================================
+
+version: 2
+
+updates:
+  # ---------------------------------------------------------------------------
+  # 1) GitHub Actions (workflow)
+  #   - Aggiorna le action a versioni stabili.
+  #   - Gruppo unico per ridurre il rumore.
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "github-actions"
+    directory: "/" # Root del repo (workflow in .github/workflows/)
+    schedule:
+      interval: "weekly" # Frequenza: daily/weekly/monthly
+      day: "monday" # Lunedì
+      time: "08:00" # 08:00 locali (vedi timezone sotto)
+      timezone: "Europe/Rome"
+    open-pull-requests-limit: 5
+    rebase-strategy: "disabled" # Evita rebasing automatico
+    labels:
+      - "dependencies"
+      - "ci"
+    reviewers:
+      - "lorenzobiosa"
+    commit-message:
+      prefix: "ci(deps)"
+      include: "scope"
+    groups:
+      actions:
+        applies-to: version-updates
+        patterns:
+          - "*" # Raggruppa tutti gli update delle Actions
+    # (Opzionale) Ignora aggiornamenti rumorosi
+    ignore:
+      - dependency-name: "actions/setup-python"
+        update-types: ["version-update:semver-patch"]
+
+  # ---------------------------------------------------------------------------
+  # 2) Python (pip / requirements.txt)
+  #   - Aggiorna dipendenze runtime e dev.
+  #   - Raggruppa per tipo: runtime vs dev/security.
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "pip"
+    directory: "/" # Cerca requirements.txt alla root
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "08:30"
+      timezone: "Europe/Rome"
+    open-pull-requests-limit: 10
+    rebase-strategy: "disabled"
+    labels:
+      - "dependencies"
+      - "python"
+    reviewers:
+      - "lorenzobiosa"
+    commit-message:
+      prefix: "build(deps)"
+      include: "scope"
+    # Gruppi: separa runtime vs strumenti di qualità/sicurezza per PR più leggibili
+    groups:
+      python-runtime:
+        applies-to: version-updates
+        patterns:
+          - "requests"
+          - "PyYAML"
+      python-quality:
+        applies-to: version-updates
+        patterns:
+          - "black"
+          - "isort"
+          - "flake8"
+          - "flake8-bugbear"
+          - "flake8-comprehensions"
+          - "flake8-builtins"
+          - "mypy"
+          - "pre-commit"
+          - "detect-secrets"
+          - "pytest"
+      python-security:
+        applies-to: version-updates
+        patterns:
+          - "bandit"
+          - "pip-audit"
+          - "types-*"
+    # Ignora patch troppo frequenti su strumenti (riduce rumore in PR)
+    ignore:
+      - dependency-name: "black"
+        update-types: ["version-update:semver-patch"]
+      - dependency-name: "isort"
+        update-types: ["version-update:semver-patch"]
+      - dependency-name: "flake8"
+        update-types: ["version-update:semver-patch"]
+      - dependency-name: "mypy"
+        update-types: ["version-update:semver-patch"]
+      - dependency-name: "pytest"
+        update-types: ["version-update:semver-patch"]
+
+  # ---------------------------------------------------------------------------
+  # 3) Container (Docker)
+  #   - Aggiorna base images nei Dockerfile.
+  #   - Raggruppa tutti gli update di container.
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "docker"
+    directory: "/" # Esamina Dockerfile alla root (o specifica sottocartelle)
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "09:00"
+      timezone: "Europe/Rome"
+    open-pull-requests-limit: 5
+    rebase-strategy: "disabled"
+    labels:
+      - "dependencies"
+      - "container"
+    reviewers:
+      - "lorenzobiosa"
+    commit-message:
+      prefix: "build(container)"
+      include: "scope"
+    groups:
+      base-images:
+        applies-to: version-updates
+        patterns:
+          - "*"
+    # Esempio: ignora update patch di immagini alpine (se troppo frequenti)
+    ignore:
+      - dependency-name: "alpine"
+        update-types: ["version-update:semver-patch"]
+# -----------------------------------------------------------------------------
+# Note operative:
+# - I PR generati includeranno etichette e prefissi commit coerenti con SemVer.
+# - L'uso di "groups" riduce il numero di PR: update correlati vengono accorpati.
+# - rebase-strategy "disabled" evita rimbalzi su PR approvate in presenza di nuove patch.
+# - Pianificazione scaglionata (lun/mar/mer) evita picchi di PR in un solo giorno.
+# - Valuta regole "ignore" in base al tuo livello di rumore tollerato.
+# -----------------------------------------------------------------------------

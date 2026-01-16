@@ -1,1 +1,39 @@
-requests>=2.31.0
+# ============================================================================
+# Runtime dependencies
+# ============================================================================
+requests>=2.32.0
+PyYAML>=6.0.2
+
+# ============================================================================
+# Development / Quality dependencies
+# ============================================================================
+pytest>=8.1.0
+
+# Formatter deterministico
+black>=24.10.0
+
+# Ordinamento import (profilo black)
+isort>=5.13.2
+
+# Linting con plugin utili
+flake8>=6.1.0
+flake8-bugbear>=24.8.19
+flake8-comprehensions>=3.14.0
+flake8-builtins>=2.5.0
+
+# Type checking
+mypy>=1.11.2
+
+# Tipi per librerie usate (migliora mypy/Pylance)
+types-requests>=2.32.0.20240820
+types-PyYAML>=6.0.12.20240917
+
+# Pre-commit framework + secret scanning
+pre-commit>=3.7.0
+detect-secrets>=1.4.0
+
+# ============================================================================
+# Security tooling
+# ============================================================================
+bandit>=1.7.5
+pip-audit>=2.7.0

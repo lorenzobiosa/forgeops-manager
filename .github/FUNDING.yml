@@ -1,0 +1,15 @@
+# ==============================================================================
+# FUNDING — ForgeOps Manager
+# Scopo:
+#   - Abilitare sponsor/supporto economico per il progetto.
+#   - Mostrare il pulsante “Sponsor” su GitHub.
+#   - Collegare canali ufficiali (GitHub Sponsors, PayPal, BuyMeACoffee, Patreon,
+#     link custom, aziendale o istituzionale).
+#
+# Documentazione ufficiale GitHub:
+#   https://docs.github.com/en/github/administering-a-repository/displaying-a-sponsor-button-in-your-repository
+#
+# ==============================================================================
+
+github: [lorenzobiosa] # GitHub Sponsors
+patreon: lorenzobiosa # Patreon

@@ -1,0 +1,69 @@
+# ==============================================================================
+# Flake8 configuration for ForgeOps Manager
+# Enterprise / Production-ready · Python 3.10–3.12 compatible
+# Compatible with: pre-commit · GitHub Actions · VS Code · PyCharm
+# ==============================================================================
+[flake8]
+
+# ----------------------------------------------------------------------
+# Standard enterprise line length
+# (100 mantiene compatibilità con Black e migliora leggibilità)
+# ----------------------------------------------------------------------
+max-line-length = 100
+
+# ----------------------------------------------------------------------
+# Black compatibility:
+# - E203: whitespace before ':' (Black formatting)
+# - W503: line break before binary operator (Black formatting)
+# ----------------------------------------------------------------------
+extend-ignore =
+    E203,
+    W503
+
+# ----------------------------------------------------------------------
+# Directories to exclude from linting
+# (performance + evitare rumore su directory non rilevanti)
+# ----------------------------------------------------------------------
+exclude =
+    .venv,
+    venv,
+    env,
+    .git,
+    .mypy_cache,
+    .pytest_cache,
+    .ruff_cache,
+    build,
+    dist,
+    docs/_build
+
+# ----------------------------------------------------------------------
+# Enabled Flake8 rule categories (enterprise recommended)
+#   E = pycodestyle errors
+#   F = pyflakes errors
+#   B = bugbear (code quality)
+#   C = comprehensions (performance/idiomatic)
+#   A = builtins checker (avoid shadowing Python core modules)
+#   COM = flake8-comprehensions for list/dict/set comprehension quality
+# ----------------------------------------------------------------------
+select =
+    E,
+    F,
+    B,
+    C,
+    A,
+    COM
+
+# ----------------------------------------------------------------------
+# Per-file ignores
+#
+# __init__.py:
+#   - F401: “imported but unused” è normale per esposizione API dei pacchetti
+# ----------------------------------------------------------------------
+per-file-ignores =
+    __init__.py:F401
+
+# ==============================================================================
+# ADVICE:
+# - Regola eventuali linee lunghe tramite Black (formatter ufficiale)
+# - Se hai URL lunghi o query string API, usa `# noqa: E501` solo in casi mirati
+# ------------------------------------------------------------------------------

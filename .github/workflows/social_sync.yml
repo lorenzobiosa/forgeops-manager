@@ -1,0 +1,174 @@
+# =============================================================================
+# Social Sync (GitHub follow/unfollow) - Workflow
+# Autore:        Lorenzo Biosa
+# Email:         lorenzo@biosa-labs.com
+# Copyright:
+#   © 2026 Biosa Labs. Tutti i diritti riservati.
+#   Questo workflow è parte del progetto ForgeOps Manager.
+#
+# Scopo:
+#   - Sincronizzare automaticamente followers/following dell’account GitHub indicato.
+#   - Supporta esecuzione pianificata (cron giornaliero) e manuale (workflow_dispatch).
+#
+# Note:
+#   - Impostare il secret `GH_TOKEN` a livello repo/org con permessi adeguati (lettura/scrittura profilo).
+#   - Log strutturato abilitato (JSON) via env LOG_JSON/LOG_LEVEL.
+#   - Pubblica un report JSON come artifact per auditing.
+# =============================================================================
+
+name: Social Sync (GitHub follow/unfollow)
+
+on:
+  schedule:
+    # Esegue ogni giorno alle 05:00 UTC (le 06:00 CET in inverno, 07:00 CEST in estate)
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Esegui in dry-run (nessuna modifica)"
+        required: false
+        default: "true"
+        type: choice
+        options: ["true", "false"]
+      allowlist:
+        description: "Lista utenti da NON unfolloware (CSV)"
+        required: false
+        default: ""
+        type: string
+      blocklist:
+        description: "Lista utenti da NON followare (CSV)"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read # Permesso minimo sufficiente per checkout dei sorgenti
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: "1"
+  LOG_JSON: "true" # Logging strutturato abilitato
+  LOG_LEVEL: "INFO" # Livello log di default
+
+jobs:
+  sync:
+    name: Esegui social sync
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # -----------------------------------------------------------------------
+      # Checkout del repository
+      # -----------------------------------------------------------------------
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # -----------------------------------------------------------------------
+      # Setup Python + cache pip
+      # -----------------------------------------------------------------------
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Cache pip (fallback manuale)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # -----------------------------------------------------------------------
+      # Installa dipendenze del progetto
+      # -----------------------------------------------------------------------
+      - name: Installa dipendenze
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # -----------------------------------------------------------------------
+      # Esecuzione sincronizzazione (dry-run o reale)
+      # - Legge parametri da workflow_dispatch (se presenti) o usa default per cron.
+      # - Richiede il secret GH_TOKEN con permessi utente adeguati.
+      # -----------------------------------------------------------------------
+      - name: Esegui sincronizzazione (dry-run o reale)
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }} # << Imposta questo secret nel repo/org
+          INPUT_DRY_RUN: ${{ github.event.inputs.dry_run }}
+          INPUT_ALLOWLIST: ${{ github.event.inputs.allowlist }}
+          INPUT_BLOCKLIST: ${{ github.event.inputs.blocklist }}
+        run: |
+          python - << 'PYCODE'
+          import os, json, sys
+          from src.providers.github.social import GitHubSocialService
+          from src.utils.logging import get_logger, log_event
+
+          logger = get_logger("workflow")
+
+          token = os.getenv("GH_TOKEN", "").strip()
+          if not token:
+              print("Errore: GH_TOKEN non impostato come secret di GitHub Actions.", file=sys.stderr)
+              sys.exit(1)
+
+          # Parametri da workflow_dispatch o default per schedule
+          raw_dry = (os.getenv("INPUT_DRY_RUN") or "").strip().lower()
+          dry_run = True if raw_dry in ("", "true", "1", "yes", "y", "on") else False
+
+          allowlist_raw = (os.getenv("INPUT_ALLOWLIST") or "").strip()
+          blocklist_raw = (os.getenv("INPUT_BLOCKLIST") or "").strip()
+          allowlist = [x.strip() for x in allowlist_raw.split(",") if x.strip()] if allowlist_raw else []
+          blocklist = [x.strip() for x in blocklist_raw.split(",") if x.strip()] if blocklist_raw else []
+
+          # Inizializza servizio (usa token e page_size da env/config interna)
+          svc = GitHubSocialService(token=token, page_size=100)
+
+          log_event(logger, "workflow_parameters", {
+              "dry_run": dry_run,
+              "allowlist": allowlist,
+              "blocklist": blocklist
+          })
+
+          report = svc.sync_followers(
+              dry_run=dry_run,
+              allowlist=allowlist,
+              blocklist=blocklist,
+          )
+
+          # Salva report su file per pubblicazione come artefatto
+          out_path = "social_sync_report.json"
+          with open(out_path, "w", encoding="utf-8") as f:
+              f.write(report.to_json())
+
+          # Stampa un breve riassunto in log
+          print(json.dumps({
+              "summary": {
+                  "dry_run": report.dry_run,
+                  "followers": report.followers_count,
+                  "following": report.following_count,
+                  "to_follow": len(report.to_follow),
+                  "to_unfollow": len(report.to_unfollow),
+                  "followed": len(report.followed),
+                  "unfollowed": len(report.unfollowed),
+                  "skipped": len(report.skipped),
+              }
+          }, ensure_ascii=False))
+
+          # Exit code 0: completato
+          sys.exit(0)
+          PYCODE
+
+      # -----------------------------------------------------------------------
+      # Pubblica il report come artifact
+      # -----------------------------------------------------------------------
+      - name: Pubblica report come artefatto
+        uses: actions/upload-artifact@v4
+        with:
+          name: social_sync_report
+          path: social_sync_report.json
+          if-no-files-found: error
+          retention-days: 7

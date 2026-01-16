@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json.schemastore.org/tasks.json",
+  "version": "2.0.0",
+
+  "tasks": [
+    // ---------------------------
+    // Setup ambiente (Linux/macOS/WSL)
+    // ---------------------------
+    {
+      "label": "setup:dev (Linux/macOS/WSL)",
+      "type": "shell",
+      "command": "bash",
+      "args": ["-lc", "./scripts/setup.sh --install-dev"],
+      "group": "build",
+      "problemMatcher": []
+    },
+
+    // ---------------------------
+    // Setup ambiente (Windows PowerShell)
+    // ---------------------------
+    {
+      "label": "setup:dev (Windows)",
+      "type": "shell",
+      "windows": {
+        "command": "pwsh",
+        "args": [
+          "-NoProfile",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "${workspaceFolder}\\scripts\\setup.ps1",
+          "-InstallDev"
+        ]
+      },
+      "command": "echo",
+      "args": ["Use Windows section"],
+      "group": "build",
+      "problemMatcher": []
+    },
+
+    // ---------------------------
+    // pre-commit: install hook
+    // ---------------------------
+    {
+      "label": "pre-commit:install",
+      "type": "shell",
+      "command": "pre-commit install",
+      "problemMatcher": []
+    },
+
+    // ---------------------------
+    // pre-commit: run all files (prima esecuzione)
+    // ---------------------------
+    {
+      "label": "pre-commit:run-all",
+      "type": "shell",
+      "command": "pre-commit run --all-files",
+      "problemMatcher": []
+    },
+
+    // ---------------------------
+    // Format (black + isort)
+    // ---------------------------
+    {
+      "label": "format:black+isort",
+      "type": "shell",
+      "command": "bash",
+      "args": ["-lc", "black . && isort ."],
+      "windows": {
+        "command": "pwsh",
+        "args": [
+          "-NoProfile",
+          "-Command",
+          "black .; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; isort ."
+        ]
+      },
+      "problemMatcher": []
+    },
+
+    // ---------------------------
+    // Format check (CI mode)
+    // ---------------------------
+    {
+      "label": "format:check",
+      "type": "shell",
+      "command": "bash",
+      "args": ["-lc", "black . --check && isort . --check-only"],
+      "windows": {
+        "command": "pwsh",
+        "args": [
+          "-NoProfile",
+          "-Command",
+          "black . --check; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; isort . --check-only"
+        ]
+      },
+      "problemMatcher": []
+    },
+
+    // ---------------------------
+    // Lint (flake8)
+    // ---------------------------
+    {
+      "label": "lint:flake8",
+      "type": "shell",
+      "command": "flake8 .",
+      "problemMatcher": []
+    },
+
+    // ---------------------------
+    // Type-check (mypy --strict)
+    // ---------------------------
+    {
+      "label": "types:mypy (strict)",
+      "type": "shell",
+      "command": "mypy src --strict",
+      "problemMatcher": []
+    },
+
+    // ---------------------------
+    // Security: bandit
+    // ---------------------------
+    {
+      "label": "security:bandit",
+      "type": "shell",
+      "command": "bandit -r src",
+      "problemMatcher": []
+    },
+
+    // ---------------------------
+    // Security: detect-secrets (usa pre-commit hook su all-files)
+    // ---------------------------
+    {
+      "label": "security:secrets",
+      "type": "shell",
+      "command": "pre-commit run detect-secrets --all-files",
+      "problemMatcher": []
+    },
+
+    // ---------------------------
+    // Test (pytest)
+    // ---------------------------
+    {
+      "label": "test:pytest",
+      "type": "shell",
+      "command": "pytest -q",
+      "problemMatcher": []
+    },
+
+    // ---------------------------
+    // Quality Gate (tutto in una volta)
+    // ---------------------------
+    {
+      "label": "quality:gate",
+      "dependsOn": [
+        "format:check",
+        "lint:flake8",
+        "types:mypy (strict)",
+        "test:pytest",
+        "security:bandit",
+        "security:secrets"
+      ],
+      "dependsOrder": "sequence",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}

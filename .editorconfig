@@ -1,0 +1,169 @@
+# =============================================================================
+# .editorconfig
+# Descrizione:
+#   Configurazione di stile cross-editor per l'intero repository.
+#   Obiettivo: garantire coerenza di EOL, charset, indentazione, whitespace
+#   e newline finale su tutti i file, con eccezioni ragionevoli per alcuni tipi.
+#
+# Linee guida:
+#   - Editor moderni (VS Code, JetBrains, Vim, ecc.) rispettano questo file.
+#   - In CI/CD, usare anche linters/formatter (Ruff/Black/Mypy, YAML linter)
+#     per enforcement aggiuntivo, ma questo file aiuta tutti in locale.
+#
+# Autore: Lorenzo Biosa <lorenzo@biosa-labs.com>
+# Copyright:
+#   © 2026 Biosa Labs. Tutti i diritti riservati.
+# Licenza:
+#   Questo file rientra nei termini della licenza del repository.
+# =============================================================================
+
+# Indica che questo è il file editorconfig radice
+root = true
+
+# -----------------------------------------------------------------------------
+# Regole generali (tutti i file)
+# -----------------------------------------------------------------------------
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+max_line_length = 100
+
+# BOM: evitiamo BOM per coerenza (alcuni tool non lo gradiscono)
+# Nota: Non esiste una chiave standard per BOM; gestirla a livello di editor/formatter.
+
+# -----------------------------------------------------------------------------
+# Python
+# - 4 spazi, LF, trimming abilitato
+# -----------------------------------------------------------------------------
+[*.py]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# -----------------------------------------------------------------------------
+# YAML (GitHub Actions, configurazioni)
+# - 2 spazi, LF
+# -----------------------------------------------------------------------------
+[*.yml]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.yaml]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# -----------------------------------------------------------------------------
+# JSON (configurazioni, dati)
+# - 2 spazi, LF
+# -----------------------------------------------------------------------------
+[*.json]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# -----------------------------------------------------------------------------
+# TOML (pyproject, configurazioni)
+# - 2 spazi, LF
+# -----------------------------------------------------------------------------
+[*.toml]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# -----------------------------------------------------------------------------
+# INI (config, EditorConfig stesso)
+# - 2 spazi, LF
+# -----------------------------------------------------------------------------
+[*.ini]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# -----------------------------------------------------------------------------
+# Markdown (documentazione)
+# - 2 spazi, LF
+# - Non rimuovere whitespace in coda: può essere usato per newline "rigide"
+# -----------------------------------------------------------------------------
+[*.md]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = false
+max_line_length = off
+
+# -----------------------------------------------------------------------------
+# Shell (script *nix)
+# - 2 spazi, LF
+# -----------------------------------------------------------------------------
+[*.sh]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# -----------------------------------------------------------------------------
+# PowerShell (Windows scripts)
+# - 4 spazi, CRLF opzionale se necessario in contesti Windows “legacy”.
+#   Di default manteniamo LF per coerenza cross-platform.
+# -----------------------------------------------------------------------------
+[*.ps1]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# -----------------------------------------------------------------------------
+# Makefile / *.mk
+# - Make usa TAB come indentazione (richiesto per regole)
+# -----------------------------------------------------------------------------
+[Makefile]
+indent_style = tab
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.mk]
+indent_style = tab
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# -----------------------------------------------------------------------------
+# Licenze, testo puro
+# - Non forzare trimming (alcune formattazioni potrebbero avere spazi)
+# -----------------------------------------------------------------------------
+[LICENSE]
+trim_trailing_whitespace = false
+insert_final_newline = true
+
+# -----------------------------------------------------------------------------
+# PULL REQUEST / ISSUE TEMPLATES
+# - Mantieni formattazione coerente con Markdown/YAML di default
+# -----------------------------------------------------------------------------
+[.github/**]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = false

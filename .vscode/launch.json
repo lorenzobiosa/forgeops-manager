@@ -1,0 +1,119 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    // Menu interattivo
+    {
+      "name": "Main (menu interattivo)",
+      "type": "python",
+      "request": "launch",
+      "module": "src.main",
+      "justMyCode": true,
+      "envFile": "${workspaceFolder}/.env"
+    },
+
+    // Code Scanning: delete analyses
+    {
+      "name": "Security (delete analyses)",
+      "type": "python",
+      "request": "launch",
+      "module": "src.providers.github.security",
+      "args": [
+        "--repo",
+        "owner/repo",
+        "--mode",
+        "delete",
+        "--tools",
+        "Trivy,Grype",
+        "--log-level",
+        "INFO",
+        "--log-json"
+      ],
+      "envFile": "${workspaceFolder}/.env",
+      "justMyCode": true
+    },
+
+    // Code Scanning: dismiss alerts
+    {
+      "name": "Security (dismiss alerts)",
+      "type": "python",
+      "request": "launch",
+      "module": "src.providers.github.security",
+      "args": [
+        "--repo",
+        "owner/repo",
+        "--mode",
+        "dismiss",
+        "--tools",
+        "",
+        "--reason",
+        "won't_fix",
+        "--comment",
+        "Bulk reset: issues will reappear if they persist.",
+        "--state",
+        "open",
+        "--log-level",
+        "INFO",
+        "--log-json"
+      ],
+      "envFile": "${workspaceFolder}/.env",
+      "justMyCode": true
+    },
+
+    // Social Sync
+    {
+      "name": "Social Sync",
+      "type": "python",
+      "request": "launch",
+      "module": "src.main",
+      "args": [
+        "social-sync",
+        // Usa il token dall'ambiente (esporta GH_TOKEN nel tuo .env o shell)
+        "--token",
+        "${env:GH_TOKEN}",
+        "--dry-run",
+        "--allowlist",
+        "octocat,dependabot",
+        "--page-size",
+        "100",
+        "--log-level",
+        "INFO",
+        "--log-json"
+      ],
+      "envFile": "${workspaceFolder}/.env",
+      "justMyCode": true
+    },
+
+    // Packages: solo elenco
+    {
+      "name": "Packages (elenco org)",
+      "type": "python",
+      "request": "launch",
+      "module": "src.providers.github.packages",
+      "args": ["--org", "acme-org", "--type", "container", "--list", "--log-json"],
+      "envFile": "${workspaceFolder}/.env",
+      "justMyCode": true
+    },
+
+    // Releases: elimina tutte
+    {
+      "name": "Releases (delete all)",
+      "type": "python",
+      "request": "launch",
+      "module": "src.providers.github.releases",
+      "args": ["--owner", "acme-org", "--repo", "my-repo", "--log-level", "INFO", "--log-json"],
+      "envFile": "${workspaceFolder}/.env",
+      "justMyCode": true
+    },
+
+    // Actions cache: elimina tutte
+    {
+      "name": "Actions cache (delete all)",
+      "type": "python",
+      "request": "launch",
+      "module": "src.providers.github.cache",
+      "args": ["--owner", "acme-org", "--repo", "my-repo", "--log-level", "INFO", "--log-json"],
+      "envFile": "${workspaceFolder}/.env",
+      "justMyCode": true
+    }
+  ]
+}

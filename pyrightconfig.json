@@ -1,0 +1,19 @@
+{
+  // Se usi .venv nella root
+  "venvPath": ".",
+  "venv": ".venv",
+
+  // Strict come VS Code
+  "typeCheckingMode": "strict",
+
+  // Python runtime usato (adatta alla tua versione reale)
+  "pythonVersion": "3.12",
+
+  // Directory da includere per la risoluzione degli import di progetto
+  "extraPaths": ["./src"],
+
+  // Mantieni diagnostiche utili
+  "reportMissingModuleSource": true,
+  "reportUnknownMemberType": true,
+  "reportUnknownVariableType": true
+}

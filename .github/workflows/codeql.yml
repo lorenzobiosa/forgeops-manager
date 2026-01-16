@@ -1,0 +1,69 @@
+# =============================================================================
+# CodeQL - Analisi sicurezza (SAST) per l'intero repository
+# Autore:        Lorenzo Biosa
+# Email:         lorenzo@biosa-labs.com
+# Copyright:
+#   © 2026 Biosa Labs. Tutti i diritti riservati.
+#   Questo workflow è parte del progetto ForgeOps Manager.
+#
+# Scopo:
+#   - Scansiona il codice sorgente (Python) con CodeQL.
+#   - Genera e pubblica risultati in "Code scanning alerts".
+#
+# Note:
+#   - Richiede permesso security-events: write (configurato sotto in permissions).
+#   - Integra con Branch Protection Rules per bloccare PR se ci sono issue di sicurezza.
+# =============================================================================
+
+name: CodeQL
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - "feature/**"
+  pull_request:
+    branches:
+      - "**"
+  schedule:
+    # Analisi pianificata (es. ogni notte alle 02:30)
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: CodeQL Analyze
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout del repository
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Inizializza CodeQL per linguaggi rilevati (Python esplicitato per chiarezza)
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python # Rilevamento linguaggio
+          queries: security-extended # Set di query aggiuntive (facoltativo)
+
+      # Autobuild per progetti compilati (non strettamente necessario per Python)
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      # Analisi e pubblicazione dei risultati (Code scanning alerts)
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:python"
+          upload: true

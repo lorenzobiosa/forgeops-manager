@@ -1,0 +1,85 @@
+# =====================================================================
+# pre-commit configuration for ForgeOps Manager
+# Autore: Lorenzo Biosa - © 2025-2026 Biosa Labs
+# =====================================================================
+
+default_language_version:
+  python: python3.12
+
+repos:
+  # -------------------------------
+  # 1. Black
+  # -------------------------------
+  - repo: https://github.com/psf/black
+    rev: 25.12.0
+    hooks:
+      - id: black
+        args: ["--line-length=100"]
+
+  # -------------------------------
+  # 2. isort
+  # -------------------------------
+  - repo: https://github.com/pycqa/isort
+    rev: 7.0.0
+    hooks:
+      - id: isort
+        args: ["--profile=black", "--line-length=100"]
+
+  # -------------------------------
+  # 3. Flake8 + plugin enterprise
+  # -------------------------------
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.3.0
+    hooks:
+      - id: flake8
+        additional_dependencies:
+          - flake8-bugbear
+          - flake8-comprehensions
+          - flake8-builtins
+          - flake8-pyproject
+
+  # -------------------------------
+  # 4. Mypy (strict) — eseguito per pacchetti (no per-file)
+  #    Evita la doppia mappatura "src.utils.*" / "utils.*"
+  # -------------------------------
+  - repo: local
+    hooks:
+      - id: mypy-packages
+        name: "mypy (strict, packages)"
+        entry: bash -lc 'mypy --config-file mypy.ini -p utils -p providers'
+        language: system
+        pass_filenames: false # <— fondamentale: mypy non riceve i singoli file
+        types: [python]
+
+  # -------------------------------
+  # 5. Bandit (security)
+  # -------------------------------
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.9.2
+    hooks:
+      - id: bandit
+        name: "Bandit security scan"
+        args: ["-r", "src", "-x", "tests"] # <— esclude tests/
+        pass_filenames: false
+        additional_dependencies:
+          - "pbr>=5,<7"
+
+  # -------------------------------
+  # 6. Detect-secrets
+  # -------------------------------
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+
+  # -------------------------------
+  # 7. Manutenzione file
+  # -------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: check-added-large-files

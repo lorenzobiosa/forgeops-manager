@@ -1,2 +1,146 @@
+# ======================================================================
+# .gitignore - ForgeOps Manager
+# Descrizione:
+#   File e directory da escludere dal versionamento per un progetto Python
+#   enterprise con CLI, test, type-checking, linters e documentazione.
+# ======================================================================
+
+# ----------------------------------------------------------------------
+# Bytecode e cache Python
+# ----------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Estensioni C
+*.so
+
+# ----------------------------------------------------------------------
+# Distribuzione / Packaging
+# ----------------------------------------------------------------------
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Log installazione pacchetti
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ----------------------------------------------------------------------
+# Test e Coverage
+# ----------------------------------------------------------------------
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# ----------------------------------------------------------------------
+# Type checker / Linters
+# ----------------------------------------------------------------------
+.mypy_cache/
+.pytype/
+.pyre/
+ruff_cache/
+.dmypy.json
+dmypy.json
+
+# ----------------------------------------------------------------------
+# Ambienti virtuali e variabili d'ambiente
+# ----------------------------------------------------------------------
 .venv/
-**/__pycache__/
+venv/
+ENV/
+env/
+pythonenv*
+.env
+.env.*
+.envrc
+# Mantieni esempi di env
+!.env.example
+
+# ----------------------------------------------------------------------
+# File di sistema (OS)
+# ----------------------------------------------------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ----------------------------------------------------------------------
+# Jupyter / Notebook
+# ----------------------------------------------------------------------
+.ipynb_checkpoints/
+.profile
+
+# ----------------------------------------------------------------------
+# Log applicativi
+# ----------------------------------------------------------------------
+logs/
+*.log
+
+# ----------------------------------------------------------------------
+# Documentazione / Siti statici
+# ----------------------------------------------------------------------
+docs/_build/
+site/
+
+# ----------------------------------------------------------------------
+# Gestori dipendenze opzionali (se non usati)
+# (Se usi pipenv/poetry, normalmente si versione il lock)
+# ----------------------------------------------------------------------
+# Pipenv (decommenta se NON vuoi versionare i lock)
+# Pipfile
+# Pipfile.lock
+
+# Poetry (decommenta se NON vuoi versionare il lock)
+# poetry.lock
+
+# PDM, altri
+.pdm-python
+.pdm-build/
+.pdm.toml
+
+# ----------------------------------------------------------------------
+# Node (se accidentalmente presente)
+# ----------------------------------------------------------------------
+node_modules/
+
+# ----------------------------------------------------------------------
+# File specifici del progetto / Report
+# ----------------------------------------------------------------------
+# Report di social-sync o output locali
+*.report.json
+social_sync_report.json
+
+# Ritenti/http capture locali (se usi strumenti custom)
+*.retry
+
+# ----------------------------------------------------------------------
+# Docker / Container (se presenti)
+# ----------------------------------------------------------------------
+# Decommenta se generi artefatti locali
+# docker-compose.override.yml
+# .docker/

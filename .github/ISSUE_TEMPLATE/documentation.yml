@@ -1,5 +1,5 @@
-name: "📚 Documentation"
-description: "Request a documentation update, addition, or correction"
+name: "📚 Documentazione"
+description: "Richiesta di aggiornamento, integrazione o correzione alla documentazione"
 title: "[Docs]: "
 labels:
   - docs
@@ -10,61 +10,116 @@ body:
   - type: markdown
     attributes:
       value: |
-        Use this template to request **updates, additions, or corrections** to documentation.
-        Please provide detailed context so the documentation team can act efficiently.
+        Usa questo template per richiedere **aggiornamenti**, **aggiunte**, **miglioramenti** o **correzioni**
+        alla documentazione del progetto.
+
+        Sono incluse:
+        - Documentazione tecnica interna
+        - README / guide CLI
+        - Documentazione dei provider (GitHub/GitLab)
+        - Esempi, diagrammi, procedure operative, note di sicurezza
+
+        Fornisci contesto chiaro per permettere una valutazione e pianificazione efficiente.
 
   - type: input
     id: summary
     attributes:
-      label: Summary
-      description: Short, clear description of the documentation change
-      placeholder: "e.g. 'Update build toolchain docs for ARM64 support'"
+      label: Sommario
+      description: Breve descrizione della modifica documentale richiesta
+      placeholder: "Aggiornare la sezione 'Code Scanning' con esempi completi"
     validations:
       required: true
 
   - type: textarea
     id: current_documentation
     attributes:
-      label: Current Documentation
-      description: Link or description of the current documentation that needs updating
-      placeholder: "e.g. 'docs/build-toolchain.md, section 3.2'"
+      label: Documentazione attuale
+      description: Indica cosa esiste oggi e cosa non è corretto/completo
+      placeholder: |
+        Esempi:
+        - README.md, sezione 'Packages', esempi non aggiornati
+        - Documentazione CLI in `src/main.py` non allineata agli argomenti effettivi
+        - Mancano esempi di utilizzo per 'social-sync'
     validations:
       required: true
 
   - type: textarea
     id: proposed_change
     attributes:
-      label: Proposed Change
-      description: Describe the change you suggest
+      label: Modifica proposta
+      description: "Descrivi la modifica che suggerisci: cosa aggiungere, correggere o riscrivere"
       placeholder: |
-        - Correct typo
-        - Add example usage
-        - Update steps for new toolchain
+        - Aggiornare esempi CLI per sicurezza.py
+        - Aggiungere sezione dedicata a setup.ps1 e setup.sh
+        - Migliorare guida 'Operazioni distruttive' con note su rate limit
+        - Aggiornare immagini/diagrammi
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Criteri di accettazione
+      description: Definisci quando la richiesta può considerarsi completata
+      placeholder: |
+        - [ ] La sezione X è aggiornata e riflette l’attuale comportamento del codice
+        - [ ] Esempi CLI corretti e testati
+        - [ ] README/CONTRIBUTING/SECURITY aggiornati dove rilevante
+        - [ ] Nessun riferimento a funzionalità deprecate
+        - [ ] Link/documenti corretti e verificati
     validations:
       required: true
 
   - type: dropdown
     id: priority
     attributes:
-      label: Priority
+      label: Priorità
       options:
-        - Low
-        - Medium
-        - High
-        - Critical
+        - Bassa
+        - Media
+        - Alta
+        - Critica
+      description: Quanto è urgente/importante questo aggiornamento?
     validations:
       required: true
 
   - type: textarea
     id: impact
     attributes:
-      label: Impact
-      description: Who or what will benefit from this documentation change?
-      placeholder: "e.g. Developers using CI/CD pipelines, internal teams"
+      label: Impatto della modifica
+      description: Chi beneficia dell'aggiornamento? Quali processi migliora?
+      placeholder: |
+        Esempi:
+        - Migliora onboarding dei nuovi sviluppatori
+        - Riduce errori nell’esecuzione di operazioni distruttive
+        - Allinea la documentazione agli script aggiornati (setup.ps1/setup.sh)
+        - Facilita manutenzione di provider GitHub
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dipendenze o prerequisiti
+      description: Modifiche a codice, PR o altri documenti necessari prima dell’aggiornamento
+      placeholder: |
+        - PR #123 aggiorna sicurezza.py → documentazione da allineare
+        - Dipende dal refactor in packages.py
+    validations:
+      required: false
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Rischi e considerazioni
+      description: Rischi o impatti collaterali relativi alla documentazione
+      placeholder: |
+        - Possibile confusione se la sezione Y non viene aggiornata contestualmente
+        - Richiede doppia revisione dei maintainer
+    validations:
+      required: false
 
   - type: textarea
     id: additional_notes
     attributes:
-      label: Additional Notes
-      description: Extra context, links, screenshots, or references
-      placeholder: "Optional"
+      label: Note aggiuntive
+      description: Link, riferimenti, screenshot, diagrammi o materiali utili
+      placeholder: "Link a documenti, PR correlate, diagrammi, esempi operativi"
