@@ -16,7 +16,7 @@
 #
 # Note:
 #   - Permessi necessari: contents: write, actions: write.
-#   - Non inserire segreti; usa il GITHUB_TOKEN fornito da GitHub Actions.
+#   - Non inserire segreti; usa il GH_TOKEN definito nell'environment "production".
 # =============================================================================
 
 name: GitHub Release
@@ -52,6 +52,7 @@ jobs:
   release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
+    environment: production # ⬅️ usa i secret dell'environment (es. GH_TOKEN)
 
     steps:
       # -----------------------------------------------------------------------
@@ -65,10 +66,10 @@ jobs:
       # -----------------------------------------------------------------------
       # Setup Python e dipendenze build
       # -----------------------------------------------------------------------
-      - name: Set up Python 3.11
+      - name: Set up Python 3.12
         uses: actions/setup-python@v6
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
 
       - name: Install build tools
@@ -78,7 +79,6 @@ jobs:
 
       # -----------------------------------------------------------------------
       # Determina TAG (da push su tag oppure da input workflow_dispatch)
-      # - Se workflow_dispatch con 'release_version': crea e pusha il tag vX.Y.Z
       # -----------------------------------------------------------------------
       - name: Determine tag
         id: tagvars
@@ -169,8 +169,6 @@ jobs:
 
       # -----------------------------------------------------------------------
       # Genera CHANGELOG (conventional commits)
-      #  - Se siamo su push di tag, l'action può dedurre il tag corrente.
-      #  - Su dispatch, passiamo esplicitamente 'toTag' (il TAG calcolato).
       # -----------------------------------------------------------------------
       - name: Build release notes (conventional commits)
         id: changelog
@@ -194,16 +192,8 @@ jobs:
               "includeOpen": false,
               "ignoreLabels": ["skip-changelog"]
             }
-          # Se l'evento è dispatch (non in ref tag), forziamo il toTag:
           toTag: ${{ steps.tagvars.outputs.tag }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # Riferimenti:
-        # - inputs supportati: fromTag/toTag/configuration/configurationJson/token
-        #   https://github.com/mikepenz/release-changelog-builder-action (v5)
-        #   (I valori sono opzionali; su push di tag, si può omettere toTag)
-        #   cite: turn90search28, turn90search30
+          token: ${{ secrets.GH_TOKEN }} # ⬅️ usa solo GH_TOKEN dell'environment
 
       # -----------------------------------------------------------------------
       # Crea Release su GitHub con asset e body (CHANGELOG generato)
@@ -211,6 +201,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          token: ${{ secrets.GH_TOKEN }} # ⬅️ usa solo GH_TOKEN
           tag_name: ${{ steps.tagvars.outputs.tag }}
           name: ForgeOps Manager ${{ steps.tagvars.outputs.tag }}
           body: ${{ steps.changelog.outputs.changelog }}
@@ -222,11 +213,6 @@ jobs:
             forgeops-manager-dist.zip
             forgeops-manager-dist.tar.gz
             SHASUMS256.txt
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # Doc ufficiale action-gh-release (@v2)
-        # https://github.com/softprops/action-gh-release
-        # cite: turn90search17
 
       # -----------------------------------------------------------------------
       # Pubblica anche gli artifact come Artifacts del workflow (audit)
@@ -250,6 +236,7 @@ jobs:
       - name: Purge GitHub Actions caches (all keys/refs)
         uses: actions/github-script@v8
         with:
+          github-token: ${{ secrets.GH_TOKEN }} # ⬅️ usa solo GH_TOKEN
           script: |
             const owner = context.repo.owner;
             const repo  = context.repo.repo;
@@ -269,7 +256,3 @@ jobs:
               }
             }
             core.info(`Cache eliminate: ${deleted}/${items.length}`);
-        # Doc REST API cache:
-        # https://docs.github.com/en/rest/actions/cache
-        # Guida "Managing caches":
-        # https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manage-caches
