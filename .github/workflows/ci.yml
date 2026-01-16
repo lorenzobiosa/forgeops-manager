@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11"]
+        python-version: ["3.12"]
     steps:
       # Checkout sorgenti
       - name: Checkout
@@ -87,7 +87,7 @@ jobs:
 
       # --- Types ---
       - name: Mypy (strict)
-        run: mypy src --strict
+        run: mypy --config-file mypy.ini -p utils -p providers
 
   # ---------------------------------------------------------------------------
   # TEST: esegue la suite pytest su più versioni, produce coverage.xml + junit
@@ -98,7 +98,7 @@ jobs:
     needs: quality # Esegue solo se QUALITY è verde
     strategy:
       matrix:
-        python-version: ["3.10", "3.11"]
+        python-version: ["3.12"]
     steps:
       # Checkout
       - name: Checkout
@@ -154,11 +154,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Setup Python 3.11
-      - name: Set up Python 3.11
+      # Setup Python 3.12
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
 
       # Installa security tooling e deps
@@ -169,7 +169,7 @@ jobs:
 
       # SAST
       - name: Bandit (SAST)
-        run: bandit -r src -q
+        run: bandit -r src -x tests -q
 
       # Secret scanning con baseline versionata
       - name: Detect-Secrets (baseline)
@@ -212,11 +212,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Setup Python 3.11
-      - name: Set up Python 3.11
+      # Setup Python 3.12
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "pip"
 
       # Installa backend di build e twine

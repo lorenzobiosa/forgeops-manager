@@ -46,7 +46,7 @@ repos:
     hooks:
       - id: mypy-packages
         name: "mypy (strict, packages)"
-        entry: bash -lc 'mypy --config-file mypy.ini -p utils -p providers'
+        entry: bash -lc 'mypy --config-file mypy.ini --explicit-package-bases src'
         language: system
         pass_filenames: false # <— fondamentale: mypy non riceve i singoli file
         types: [python]

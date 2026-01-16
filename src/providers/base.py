@@ -25,7 +25,7 @@ import time
 from typing import Any, Callable, Dict, List, Optional
 
 # Integrazione logging centrale
-from utils.structured_logging import get_logger, log_event
+from src.utils.structured_logging import get_logger, log_event
 
 # Logger di modulo (eredita configurazione root definita altrove, es. in main.py)
 _logger = get_logger(__name__)

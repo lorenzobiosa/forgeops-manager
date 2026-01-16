@@ -48,7 +48,7 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Set, Tuple, cas
 
 import requests
 
-from utils.structured_logging import get_logger, log_event
+from src.utils.structured_logging import get_logger, log_event
 
 # ==============================
 # Costanti di configurazione

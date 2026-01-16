@@ -37,33 +37,33 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import Dict, cast
+from typing import Callable, Dict, cast
 
 # Provider base e implementazioni
-from providers.base import Provider
+from src.providers.base import Provider
 
 # Operazioni GitHub
-from providers.github.actions import (
+from src.providers.github.actions import (
     register_actions,  # registra azioni: pulizia workflow + social-sync
 )
-from providers.github.cache import delete_all_actions_cache
-from providers.github.packages import interactive_delete_packages
-from providers.github.releases import delete_all_releases
+from src.providers.github.cache import delete_all_actions_cache
+from src.providers.github.packages import interactive_delete_packages
+from src.providers.github.releases import delete_all_releases
 
 # Import del Protocol del modulo security per cast tip-safe
-from providers.github.security import RequestsSessionLike as GHRequestsSessionLike
-from providers.github.security import clear_vulns
+from src.providers.github.security import RequestsSessionLike as GHRequestsSessionLike
+from src.providers.github.security import clear_vulns
 
 # Social sync (subcomando)
-from providers.github.social import GitHubSocialService
-from providers.gitlab.mock import GitLabMockProvider
+from src.providers.github.social import GitHubSocialService
+from src.providers.gitlab.mock import GitLabMockProvider
 
 # Config e logging universali
-from utils.config import get_social_sync_settings
-from utils.structured_logging import get_logger, log_event, setup_logging
+from src.utils.config import get_social_sync_settings
+from src.utils.structured_logging import get_logger, log_event, setup_logging
 
 # Guardrail token & rate-limit (enterprise)
-from utils.token_guard import TokenScopeError, ensure_github_token_ready
+from src.utils.token_guard import TokenScopeError, ensure_github_token_ready
 
 # Logger di modulo (usato dagli helper; il setup avviene in main())
 _logger = logging.getLogger(__name__)
@@ -500,7 +500,13 @@ def main() -> int:
         logger = get_logger(__name__)
         try:
             log_event(logger, "cli_invocation", {"command": "social-sync"})
-            return args._func(args)  # type: ignore[attr-defined]
+            # mypy: tipizza il subcommand handler impostato con set_defaults(_func=...)
+            func_any = getattr(args, "_func", None)
+            if func_any is None:
+                logger.error("Handler del subcomando non trovato (_func mancante).")
+                return 2
+            func = cast(Callable[[argparse.Namespace], int], func_any)
+            return func(args)
         except Exception as exc:
             logger.exception("Errore eseguendo subcomando social-sync")
             sys.stderr.write(f"Errore social-sync: {exc}\n")

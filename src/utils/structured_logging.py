@@ -23,7 +23,7 @@ Variabili d'ambiente supportate:
     LOG_BACKUP_COUNT = numeri file di backup (default: 3)
 
 Uso tipico:
-    from utils.logging import (
+    from src.utils.logging import (
         setup_logging, get_logger, log_event,
         new_request_id, request_id_context,
         set_context, scoped_context,

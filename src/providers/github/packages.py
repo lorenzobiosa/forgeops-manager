@@ -35,9 +35,9 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, cast
 
 import requests
 
-from utils.config import get_username_or_org
-from utils.http_client import GITHUB_API, delete, get
-from utils.structured_logging import get_logger, log_event, setup_logging
+from src.utils.config import get_username_or_org
+from src.utils.http_client import GITHUB_API, delete, get
+from src.utils.structured_logging import get_logger, log_event, setup_logging
 
 __all__ = [
     "_list_packages",

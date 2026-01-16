@@ -37,9 +37,9 @@ from __future__ import annotations
 import argparse
 from typing import Optional
 
-from utils.config import get_social_sync_settings
-from utils.http_client import GITHUB_API
-from utils.structured_logging import get_logger, log_event, setup_logging
+from src.utils.config import get_social_sync_settings
+from src.utils.http_client import GITHUB_API
+from src.utils.structured_logging import get_logger, log_event, setup_logging
 
 from ..base import Provider
 from .api import gh_delete, owner_repo_or_prompt, paginate

@@ -33,9 +33,9 @@ from typing import Any, Dict, Iterator, List, Mapping, Optional, Sequence, Tuple
 
 import requests
 
-from utils.config import get_owner_repo
-from utils.http_client import delete, get
-from utils.structured_logging import get_logger, log_event
+from src.utils.config import get_owner_repo
+from src.utils.http_client import delete, get
+from src.utils.structured_logging import get_logger, log_event
 
 __all__ = ["paginate", "owner_repo_or_prompt", "gh_delete"]
 
